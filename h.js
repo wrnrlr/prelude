@@ -1,5 +1,3 @@
-import {spread,assign,insert,createComponent,dynamicProperty,SVGElements} from "./dom.js";
-
 const $ELEMENT = Symbol("hyper-element"), Fragment = (props) => props.children, {isArray} = Array;
 
 // Inspired by https://github.com/ryansolid/dom-expressions/blob/main/packages/hyper-dom-expressions/src/index.ts
@@ -136,5 +134,3 @@ const rules = [
   // [/content-(start|center|end|between|around|evenly)/, (pos)=>({'align-content':alignContent[pos]})],
   // [/self-(auto|start|center|end|stretch|baseline)/, (pos)=>({'aligh-self':pos})],
 ]
-
-export default createHyperScript({spread, assign, insert, createComponent, dynamicProperty, SVGElements},tw(rules))

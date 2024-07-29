@@ -1,32 +1,9 @@
+import S from './s.ts'
+import {createRuntime} from './runtime.js'
+import {createHyperScript} from './h.js'
 import {assertEquals,assert} from '@std/assert'
 import {describe,it} from '@std/testing/bdd'
-import {createHyperScript} from "./h.js";
-import {spread, assign, insert, createComponent, dynamicProperty, SVGElements} from "./dom.js";
-import S from "./s.ts";
-
 import {JSDOM} from 'npm:jsdom'
-const {window} = new JSDOM('<!DOCTYPE html>');
-
-function createRuntime(window) {
-  const {document} = window,
-    isSVG = e => e instanceof window.SVGElement,
-    createElement = name => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
-    createTextNode = s => document.createTextNode(s)
-  function archetype(a) {
-    let t = typeof a
-    if (t==='object') {
-      if (Array.isArray(a)) t = 'array'
-      else if (a instanceof RegExp) t = 'regexp'
-      else if (a instanceof Date) t = 'date'
-      else if (a instanceof window.Element) t = 'element'
-    }
-    return t
-  }
-  return {archetype,assign,insert,spread,dynamicProperty,createComponent,createElement,createTextNode,isSVG}
-}
-
-const r = createRuntime(window)
-const h = createHyperScript(r);
 
 const FIXTURES = [
   '<div id="main"><h1>Welcome</h1><span style="color: rgb(85, 85, 85);">555</span><label for="entry" class="name">Edit:</label><input id="entry" type="text" readonly=""></div>',
@@ -39,7 +16,11 @@ const FIXTURES = [
 ];
 
 describe("HyperScript", () => {
-  describe("Simple Elements", {only:true}, () => {
+  const {window} = new JSDOM('<!DOCTYPE html>');
+  const { document,MouseEvent } = window
+  const r = createRuntime(window)
+  const h = createHyperScript(r);
+  describe("Simple Elements", () => {
     const template = h("#main", [
       h("h1", "Welcome"),
       h("span", { style: "color: #555" }, 555),
@@ -50,7 +31,6 @@ describe("HyperScript", () => {
   });
 
   describe("Attribute Expressions", () => {
-    console.log('data:',S.data)
     const selected = S.data(true),
       welcoming = S.data("hello");
     let link;
