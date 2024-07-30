@@ -1,6 +1,4 @@
-import S from './s.ts'
-import {createRuntime} from './runtime.js'
-import {createHyperScript} from './h.js'
+import {createRuntime,createHyperScript,S} from './mod.ts'
 import {assertEquals,assert} from '@std/assert'
 import {describe,it} from '@std/testing/bdd'
 import {JSDOM} from 'npm:jsdom'
