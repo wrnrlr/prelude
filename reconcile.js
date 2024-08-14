@@ -1,11 +1,11 @@
 // Slightly modified version of: https://github.com/WebReflection/udomdiff/blob/master/index.js
 export default function reconcileArrays(parentNode, a, b) {
-  const bLength = b.length,
-    after = a[aEnd - 1].nextSibling
-  let aEnd = a.length,
+  let bLength = b.length,
+    aEnd = a.length,
     bEnd = bLength,
     aStart = 0,
     bStart = 0,
+    after = a[aEnd - 1].nextSibling,
     map = null;
 
   while (aStart < aEnd || bStart < bEnd) {

@@ -1,12 +1,15 @@
 {
+  "name": "@wrnrlr/daft",
+  "version": "0.1.0",
+  "exports": "./mod.ts",
   "compilerOptions": {
-    "lib": ["es6", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
-    "strict": false,
-    "noImplicitAny": false
+    "noImplicitThis": false
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "@std/testing": "jsr:@std/testing@^0.225.3"
   },
-  "tasts": {}
+  "tasks": {
+    "example": "deno run -A npm:esbuild mod.ts --bundle --outfile=./example/daft.js --format=esm --servedir=./example --watch"
+  }
 }

@@ -267,6 +267,7 @@ class DataNode {
       if (this.log !== null) {
         this.pending = value;
         RootClock.changes.add(this);
+        console.log(event)
         event();
       } else {
         this.value = value;

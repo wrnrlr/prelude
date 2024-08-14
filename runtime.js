@@ -6,7 +6,7 @@ export {Properties, ChildProperties, getPropAlias, Aliases, DOMElements, SVGElem
 // const currentContext = null;
 // only used during hydration???
 const sharedConfig = {};
-const getOwner = null;
+// const getOwner = null;
 
 const root = S.root
 const sample = S.sample
@@ -18,11 +18,12 @@ export function memo(fn, equal) {
   if (!equal) return effect(fn);
   const s = signal(sample(fn));
   effect(() => s(fn()));
-  // return s;
+  return s;
 }
 
+// TODO this can just be reduced to the sample(() => Comp(props))
 export function createComponent(Comp, props) {
-  if (Comp.prototype && Comp.prototype.isClassComponent) {
+  if (Comp.prototype?.isClassComponent) {
     return sample(() => {
       const comp = new Comp(props);
       return comp.render(props);
@@ -54,35 +55,9 @@ function resolveSource(s) {
   return (s = typeof s === "function" ? s() : s) == null ? {} : s;
 }
 
-function mergeProps(...sources) {
-  return new Proxy(
-    {
-      get(property) {
-        for (let i = sources.length - 1; i >= 0; i--) {
-          const v = resolveSource(sources[i])[property];
-          if (v !== undefined) return v;
-        }
-      },
-      has(property) {
-        for (let i = sources.length - 1; i >= 0; i--) {
-          if (property in resolveSource(sources[i])) return true;
-        }
-        return false;
-      },
-      keys() {
-        const keys = [];
-        for (let i = 0; i < sources.length; i++)
-          keys.push(...Object.keys(resolveSource(sources[i])));
-        return [...new Set(keys)];
-      }
-    },
-    propTraps
-  );
-}
-
 const $$EVENTS = "_$DX_DELEGATE"
 
-export function createRuntime(window) {
+export function runtime(window) {
   const {document,Element,SVGElement} = window,
     isSVG = e => e instanceof SVGElement,
     createElement = name => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
@@ -118,7 +93,8 @@ export function createRuntime(window) {
     const create = () => {
       if (sharedConfig.context) throw new Error("Failed attempt to create new DOM elements during hydration. Check that the libraries you are using support hydration.");
       const t = document.createElement("template");
-      t.innerHTML = html;
+      t.insertAdjacentHTML('afterbegin',html)
+      // t.innerHTML = html;
       return isSVG ? t.content.firstChild.firstChild : t.content.firstChild;
     };
     // backwards compatible with older builds
@@ -319,6 +295,7 @@ export function createRuntime(window) {
   }
 
   function normalizeIncomingArray(normalized, array, current, unwrap) {
+    console.log('normalizeIncomingArray',normalized,array,current,unwrap)
     let dynamic = false;
     for (let i = 0, len = array.length; i < len; i++) {
       let item = array[i], t
@@ -494,6 +471,32 @@ function eventHandler(e) {
 function appendNodes(parent, array, marker = null) {
   for (let i = 0, len = array.length; i < len; i++) parent.insertBefore(array[i], marker);
 }
+
+// function mergeProps(...sources) {
+//   return new Proxy(
+//     {
+//       get(property) {
+//         for (let i = sources.length - 1; i >= 0; i--) {
+//           const v = resolveSource(sources[i])[property];
+//           if (v !== undefined) return v;
+//         }
+//       },
+//       has(property) {
+//         for (let i = sources.length - 1; i >= 0; i--) {
+//           if (property in resolveSource(sources[i])) return true;
+//         }
+//         return false;
+//       },
+//       keys() {
+//         const keys = [];
+//         for (let i = 0; i < sources.length; i++)
+//           keys.push(...Object.keys(resolveSource(sources[i])));
+//         return [...new Set(keys)];
+//       }
+//     },
+//     propTraps
+//   );
+// }
 
 // Hydrate
 // export function hydrate(code, element, options = {}) {
