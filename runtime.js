@@ -33,16 +33,8 @@ export function runtime(window) {
 
   function render(code, element, init, options = {}) {
     if (!element) throw new Error("The `element` passed to `render(..., element)` doesn't exist. Make sure `element` exists in the document.");
-    let disposer;
-    root(dispose => {
-      disposer = dispose;
-      if (element === document) code()
-      else insert(element, code(), element.firstChild ? null : undefined, init)
-    }, options.owner);
-    return () => {
-      disposer();
-      element.textContent = "";
-    };
+    if (element === document) code()
+    else insert(element, code(), element.firstChild ? null : undefined, init)
   }
 
   function template(html, isCE, isSVG) {
