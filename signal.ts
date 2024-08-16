@@ -108,6 +108,14 @@ export function batch(fn:()=>void):void {
   }
 }
 
+export function memo<T>(fn:()=>T, equal:T):T {
+  if (typeof fn !== "function") return fn;
+  if (!equal) return effect(fn);
+  const s = signal(sample(fn));
+  effect(() => s(fn()));
+  return s;
+}
+
 let EFFECT:null|Effect = null
 let BATCHES:null|Set<Effect> = null
 

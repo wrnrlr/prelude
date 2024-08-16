@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<title>Counter</title>
+
+<script type="module">
+
+import {h,signal,render} from './daft.js'
+
+render(()=>{
+  const count = signal(1)
+  return h('button',{onClick(e){count(count()+1)}},count)
+},document.body)
+
+</script>

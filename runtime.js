@@ -11,49 +11,6 @@ const sharedConfig = {};
 const root = S.root
 const sample = S.sample
 const effect = S
-const signal = S.value
-
-export function memo(fn, equal) {
-  if (typeof fn !== "function") return fn;
-  if (!equal) return effect(fn);
-  const s = signal(sample(fn));
-  effect(() => s(fn()));
-  return s;
-}
-
-// TODO this can just be reduced to the sample(() => Comp(props))
-export function createComponent(Comp, props) {
-  if (Comp.prototype?.isClassComponent) {
-    return sample(() => {
-      const comp = new Comp(props);
-      return comp.render(props);
-    });
-  }
-  return sample(() => Comp(props));
-}
-
-const propTraps = {
-  get(_, property) {return _.get(property)},
-  has(_, property) {return _.has(property)},
-  set: trueFn,
-  deleteProperty: trueFn,
-  getOwnPropertyDescriptor(_, property) {
-    return {
-      configurable: true,
-      enumerable: true,
-      get() {return _.get(property);},
-      set: trueFn,
-      deleteProperty: trueFn
-    };
-  },
-  ownKeys(_) {return _.keys();}
-};
-
-function trueFn() {return true;}
-
-function resolveSource(s) {
-  return (s = typeof s === "function" ? s() : s) == null ? {} : s;
-}
 
 const $$EVENTS = "_$DX_DELEGATE"
 
@@ -131,6 +88,7 @@ export function runtime(window) {
     return prevProps;
   }
 
+  // TODO inline?
   function use(fn, element, arg) {
     return sample(() => fn(element, arg));
   }
@@ -197,7 +155,7 @@ export function runtime(window) {
         prop = prop.slice(5);
         isProp = true;
       } else if (!!sharedConfig.context && node.isConnected) return value;
-      if (prop === "class" || prop === "className") className(node, value);
+      if (prop === "class" || prop === "className") setClassName(node, value);
       else if (isCE && !isProp && !isChildProp) node[toPropertyName(prop)] = value;
       else node[propAlias || prop] = value;
     } else {
@@ -345,21 +303,23 @@ export function runtime(window) {
     return [node];
   }
 
-  return {archetype, spread, assign, insert, createComponent, createElement, createTextNode, dynamicProperty, render, isSVG,clearDelegatedEvents}
+  return {archetype, spread, assign, insert, createComponent, createElement, createTextNode, render, isSVG,clearDelegatedEvents}
 }
 
-function dynamicProperty(props, key) {
-  const src = props[key];
-  Object.defineProperty(props, key, {
-    get() { return src(); },
-    enumerable: true
-  });
-  return props;
-}
+// function setProperty(node, name, value) {
+//   if (!!sharedConfig.context && node.isConnected) return;
+//   node[name] = value;
+// }
 
-function setProperty(node, name, value) {
-  if (!!sharedConfig.context && node.isConnected) return;
-  node[name] = value;
+// TODO this can just be reduced to the sample(() => Comp(props))
+export function createComponent(Comp, props) {
+  if (Comp.prototype?.isClassComponent) {
+    return sample(() => {
+      const comp = new Comp(props);
+      return comp.render(props);
+    });
+  }
+  return sample(() => Comp(props));
 }
 
 function setAttribute(node, name, value) {
@@ -374,7 +334,7 @@ function setAttributeNS(node, namespace, name, value) {
   else node.setAttributeNS(namespace, name, value);
 }
 
-function className(node, value) {
+function setClassName(node, value) {
   if (!!sharedConfig.context && node.isConnected) return;
   if (value == null) node.removeAttribute("class");
   else node.className = value;
@@ -416,9 +376,9 @@ function style(node, value, prev) {
   if (!value) return prev ? setAttribute(node, "style") : value;
   const nodeStyle = node.style;
   if (typeof value === "string") return (nodeStyle.cssText = value);
-  typeof prev === "string" && (nodeStyle.cssText = prev = undefined);
-  prev || (prev = {});
-  value || (value = {});
+  if (typeof prev === "string") nodeStyle.cssText = prev = undefined
+  if (!prev) prev = {}
+  if (!value) value = {}
   let v, s;
   for (s in prev) {
     value[s] == null && nodeStyle.removeProperty(s);
@@ -471,6 +431,29 @@ function eventHandler(e) {
 function appendNodes(parent, array, marker = null) {
   for (let i = 0, len = array.length; i < len; i++) parent.insertBefore(array[i], marker);
 }
+
+// const propTraps = {
+//   get(_, property) {return _.get(property)},
+//   has(_, property) {return _.has(property)},
+//   set: trueFn,
+//   deleteProperty: trueFn,
+//   getOwnPropertyDescriptor(_, property) {
+//     return {
+//       configurable: true,
+//       enumerable: true,
+//       get() {return _.get(property);},
+//       set: trueFn,
+//       deleteProperty: trueFn
+//     };
+//   },
+//   ownKeys(_) {return _.keys();}
+// };
+
+// function trueFn() {return true;}
+
+// function resolveSource(s) {
+//   return (s = typeof s === "function" ? s() : s) == null ? {} : s;
+// }
 
 // function mergeProps(...sources) {
 //   return new Proxy(
