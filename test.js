@@ -4,7 +4,7 @@ import {describe,it} from '@std/testing/bdd'
 import {signal,computed,effect,sample,batch} from './signal.ts'
 
 describe('signal',()=>{
-  const a = signal(1), b = signal(2)
+  const a = signal(1)
   assertEquals(a(),1)
   assertEquals(a.peek(),1)
   assertEquals(a.valueOf(),1)
@@ -20,10 +20,10 @@ describe('signal',()=>{
 describe('effect',()=>{
   const n = signal(1)
   let m = 0
-  effect(()=>m = n())
-  assertEquals(m,1)
-  n(2)
+  effect(initial => m = n() + initial,1)
   assertEquals(m,2)
+  n(2)
+  assertEquals(m,4)
 })
 
 describe('sample',()=>{
@@ -74,7 +74,7 @@ describe("hyperscript", () => {
   ];
 
   const {window} = new JSDOM('<!DOCTYPE html>');
-  const { document,MouseEvent } = window
+  const {document,MouseEvent} = window
   const r = runtime(window)
   const h = hyperscript(r);
 

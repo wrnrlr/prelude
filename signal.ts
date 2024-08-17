@@ -4,12 +4,13 @@ export type Display<T> = {toJSON():T;valueOf():T,toString():string}
 export type Getter<T> = {():T; peek():T}
 export type Setter<T> = {(a:T):T; (a:(v:T)=>T):T}
 export type Observable = { add(e:Observable):void; delete(e:Observable):void; dispose():void}
-export type Effect = Observable & {fn():void}
+export type Effect<T> = Observable & {fn(v?:T):T}
 export type Computed<T> = Observable & Getter<T> & Display<T>
 export type Signal<T> = Computed<T> & Setter<T> & {get():T;set(a:T):T;} & Display<T>
 
 export function signal<T>(value:T):Signal<T> {
-  const effects = new Set<Effect>, self:any = {
+  const effects = new Set<Effect<T>>
+  const self:any = {
     value,
     set(value:T) {
       if (self.value === value) return self.value
@@ -24,8 +25,8 @@ export function signal<T>(value:T):Signal<T> {
       if (EFFECT) EFFECT.add(self.add(EFFECT))
       return self.value as T
     },
-    add: (e:Effect) => effects.add(e),
-    delete: (e:Effect) => effects.delete(e),
+    add: (e:Effect<T>) => effects.add(e),
+    delete: (e:Effect<T>) => effects.delete(e),
     peek: () => self.value,
     valueOf: () => self.get(),
     toString: () => String(self.get()),
@@ -52,22 +53,35 @@ export function computed<T>(fn:(v?:T)=>T, value?:T):Computed<T> {
   return f as Computed<T>
 }
 
-export function effect<T>(fn:(v?:T)=>T|undefined, value?:T):()=>void {
-  let teardown:any
-  let fx = create(() => { teardown?.call?.(); teardown = fn() });
-  if (EFFECT) EFFECT.add(fx);
-  fx.fn();
-  const ret = () => (teardown?.call?.(), fx.dispose())
-  return ret
+export function effect<T extends void | undefined>(fn:(v?:T)=>T|undefined, value?:T):Effect<T> {
+  let result:ReturnType<typeof fn>
+  const fx = create(inital => { result = fn(inital); return result}, value)
+  if (EFFECT) EFFECT.add(fx)
+  fx.fn()
+  const ret = () => {
+    fx.dispose()
+  }
+  return ret as unknown as Effect<T>
 }
 
-function effect2(fn:()=>void):Effect {
-  const effects = new Set<Effect>
+function create<T>(fn:(v?:T)=>T|undefined,value?:T):Effect<T> {
+  const e = effect2(() => {
+    const prev = EFFECT
+    EFFECT = e
+    try { value = fn(value) }
+    finally { EFFECT = prev }
+    return value
+  })
+  return e
+}
+
+function effect2<T>(fn:(v?:T)=>T|undefined):Effect<T> {
+  const effects = new Set<Effect<T>>
   const self = {
     effects,
     fn,
-    add: (e:Effect) => effects.add(e),
-    delete: (e:Effect) => effects.delete(e),
+    add: (e:Effect<T>) => effects.add(e),
+    delete: (e:Effect<T>) => effects.delete(e),
     dispose: () => {
       for (const entry of cleared(effects)) {
         entry.delete(self);
@@ -75,17 +89,7 @@ function effect2(fn:()=>void):Effect {
       }
     }
   }
-  return self
-}
-
-function create(block:()=>void):Effect {
-const e = effect2(() => {
-    const prev = EFFECT
-    EFFECT = e
-    try { block() }
-    finally { EFFECT = prev }
-  })
-  return e
+  return self as Effect<T>
 }
 
 export function sample<T>(fn:()=>T):T {
@@ -116,10 +120,10 @@ export function batch(fn:()=>void):void {
 //   return s;
 // }
 
-let EFFECT:null|Effect = null
-let BATCHES:null|Set<Effect> = null
+let EFFECT:null|Effect<unknown> = null
+let BATCHES:null|Set<Effect<unknown>> = null
 
-function cleared(self:Set<Effect>):Effect[] {
+function cleared(self:Set<Effect<unknown>>):Effect<unknown>[] {
   const entries = [...self];
   self.clear();
   return entries;

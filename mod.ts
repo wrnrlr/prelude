@@ -1,11 +1,11 @@
+export {signal,effect,sample} from './signal.ts'
 import {runtime} from './runtime.js'
 import {hyperscript} from './hyperscript.js'
-import {default as S} from './s.ts'
 
-export const root = S.root
-export const sample = S.sample
-export const effect = S
-export const signal = S.value
+// export const root = S.root
+// export const sample = S.sample
+// export const effect = S
+// export const signal = S.value
 
 // import {Signal} from './s2.js'
 

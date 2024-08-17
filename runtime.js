@@ -1,4 +1,4 @@
-import S from './s.ts'
+import {effect,sample} from './signal.ts'
 import reconcileArrays from './reconcile.js'
 import {SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
 export {Properties, ChildProperties, getPropAlias, Aliases, DOMElements, SVGElements, SVGNamespace, DelegatedEvents} from './constants.ts'
@@ -7,11 +7,6 @@ export {Properties, ChildProperties, getPropAlias, Aliases, DOMElements, SVGElem
 // only used during hydration???
 const sharedConfig = {};
 // const getOwner = null;
-
-const root = S.root
-const sample = S.sample
-const effect = S
-
 const $$EVENTS = "_$DX_DELEGATE"
 
 export function runtime(window) {
@@ -35,23 +30,6 @@ export function runtime(window) {
     if (!element) throw new Error("The `element` passed to `render(..., element)` doesn't exist. Make sure `element` exists in the document.");
     if (element === document) code()
     else insert(element, code(), element.firstChild ? null : undefined, init)
-  }
-
-  function template(html, isCE, isSVG) {
-    let node;
-    const create = () => {
-      if (sharedConfig.context) throw new Error("Failed attempt to create new DOM elements during hydration. Check that the libraries you are using support hydration.");
-      const t = document.createElement("template");
-      t.insertAdjacentHTML('afterbegin',html)
-      // t.innerHTML = html;
-      return isSVG ? t.content.firstChild.firstChild : t.content.firstChild;
-    };
-    // backwards compatible with older builds
-    const fn = isCE
-      ? () => sample(() => document.importNode(node || (node = create()), true))
-      : () => (node || (node = create())).cloneNode(true);
-    fn.cloneNode = fn;
-    return fn;
   }
 
   function delegateEvents(eventNames, document = window.document) {
@@ -88,6 +66,7 @@ export function runtime(window) {
   function insert(parent, accessor, marker, initial) {
     if (marker !== undefined && !initial) initial = [];
     if (typeof accessor !== "function") return insertExpression(parent, accessor, initial, marker);
+    console.log('insert',parent,accessor,initial)
     effect(current => insertExpression(parent, accessor(), current, marker), initial);
   }
 
@@ -159,17 +138,7 @@ export function runtime(window) {
   }
 
   function insertExpression(parent, value, current, marker, unwrapArray) {
-    // const hydrating = !!sharedConfig.context && parent.isConnected;
-    // if (hydrating) {
-    //   !current && (current = [...parent.childNodes]);
-    //   const cleaned = [];
-    //   for (let i = 0; i < current.length; i++) {
-    //     const node = current[i];
-    //     if (node.nodeType === 8 && node.data.slice(0, 2) === "!$") node.remove();
-    //     else cleaned.push(node);
-    //   }
-    //   current = cleaned;
-    // }
+    console.log('current',current)
     while (typeof current === "function") current = current();
     if (value === current) return current;
     const t = typeof value,
@@ -177,7 +146,6 @@ export function runtime(window) {
     parent = (multi && current[0] && current[0].parentNode) || parent;
 
     if (t === "string" || t === "number") {
-      // if (hydrating) return current;
       if (t === "number") {
         value = value.toString();
         if (value === current) return current;
@@ -194,7 +162,6 @@ export function runtime(window) {
         } else current = parent.textContent = value;
       }
     } else if (value == null || t === "boolean") {
-      // if (hydrating) return current;
       current = cleanChildren(parent, current, marker);
     } else if (t === "function") {
       effect(() => {
@@ -210,14 +177,6 @@ export function runtime(window) {
         effect(() => (current = insertExpression(parent, array, current, marker, true)));
         return () => current;
       }
-      // if (hydrating) {
-      //   if (!array.length) return current;
-      //   if (marker === undefined) return [...parent.childNodes];
-      //   let node = array[0];
-      //   const nodes = [node];
-      //   while ((node = node.nextSibling) !== marker) nodes.push(node);
-      //   return (current = nodes);
-      // }
       if (array.length === 0) {
         current = cleanChildren(parent, current, marker);
         if (multi) return current;
@@ -231,7 +190,6 @@ export function runtime(window) {
       }
       current = array;
     } else if (value.nodeType) {
-      // if (hydrating && value.parentNode) return (current = multi ? [value] : value);
       if (Array.isArray(current)) {
         if (multi) return (current = cleanChildren(parent, current, marker, value));
         cleanChildren(parent, current, null, value);
@@ -240,7 +198,6 @@ export function runtime(window) {
       } else parent.replaceChild(value, parent.firstChild);
       current = value;
     } else console.warn(`Unrecognized value. Skipped inserting`, value);
-
     return current;
   }
 
@@ -571,7 +528,7 @@ function appendNodes(parent, array, marker = null) {
 // const voidFn = () => undefined;
 
 // experimental
-export const RequestContext = Symbol();
+// export const RequestContext = Symbol();
 
 // deprecated
 // export function innerHTML(parent, content) {

@@ -15,7 +15,7 @@ export function hyperscript(r, patch) {
     }
   }
   return function () {
-    let args = [].slice.call(arguments)
+    let args = [...arguments]
     while (isArray(args[0])) args = args[0]
     if (args[0][$ELEMENT]) args.unshift(Fragment)
     const multiExpression = detectMultiExpression(args)
