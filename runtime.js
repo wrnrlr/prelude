@@ -66,7 +66,6 @@ export function runtime(window) {
   function insert(parent, accessor, marker, initial) {
     if (marker !== undefined && !initial) initial = [];
     if (typeof accessor !== "function") return insertExpression(parent, accessor, initial, marker);
-    console.log('insert',parent,accessor,initial)
     effect(current => insertExpression(parent, accessor(), current, marker), initial);
   }
 
