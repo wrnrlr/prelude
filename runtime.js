@@ -138,7 +138,6 @@ export function runtime(window) {
   }
 
   function insertExpression(parent, value, current, marker, unwrapArray) {
-    console.log('current',current)
     while (typeof current === "function") current = current();
     if (value === current) return current;
     const t = typeof value,
