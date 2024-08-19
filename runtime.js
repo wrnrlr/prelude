@@ -200,7 +200,6 @@ export function runtime(window) {
   }
 
   function normalizeIncomingArray(normalized, array, current, unwrap) {
-    console.log('normalizeIncomingArray',normalized,array,current,unwrap)
     let dynamic = false;
     for (let i = 0, len = array.length; i < len; i++) {
       let item = array[i], t
