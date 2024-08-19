@@ -3,10 +3,6 @@ import reconcileArrays from './reconcile.js'
 import {SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
 export {Properties, ChildProperties, getPropAlias, Aliases, DOMElements, SVGElements, SVGNamespace, DelegatedEvents} from './constants.ts'
 
-// const currentContext = null;
-// only used during hydration???
-const sharedConfig = {};
-// const getOwner = null;
 const $$EVENTS = "_$DX_DELEGATE"
 
 export function runtime(window) {
@@ -124,7 +120,7 @@ export function runtime(window) {
       if (forceProp) {
         prop = prop.slice(5);
         isProp = true;
-      } else if (!!sharedConfig.context && node.isConnected) return value;
+      }
       if (prop === "class" || prop === "className") setClassName(node, value);
       else if (isCE && !isProp && !isChildProp) node[toPropertyName(prop)] = value;
       else node[propAlias || prop] = value;
@@ -252,11 +248,6 @@ export function runtime(window) {
   return {archetype, spread, assign, insert, createComponent, createElement, createTextNode, render, isSVG,clearDelegatedEvents}
 }
 
-// function setProperty(node, name, value) {
-//   if (!!sharedConfig.context && node.isConnected) return;
-//   node[name] = value;
-// }
-
 // TODO this can just be reduced to the sample(() => Comp(props))
 export function createComponent(Comp, props) {
   if (Comp.prototype?.isClassComponent) {
@@ -269,19 +260,16 @@ export function createComponent(Comp, props) {
 }
 
 function setAttribute(node, name, value) {
-  if (!!sharedConfig.context && node.isConnected) return;
   if (value == null) node.removeAttribute(name);
   else node.setAttribute(name, value);
 }
 
 function setAttributeNS(node, namespace, name, value) {
-  if (!!sharedConfig.context && node.isConnected) return;
   if (value == null) node.removeAttributeNS(namespace, name);
   else node.setAttributeNS(namespace, name, value);
 }
 
 function setClassName(node, value) {
-  if (!!sharedConfig.context && node.isConnected) return;
   if (value == null) node.removeAttribute("class");
   else node.className = value;
 }
@@ -360,9 +348,6 @@ function eventHandler(e) {
   // simulate currentTarget
   Object.defineProperty(e, "currentTarget", { configurable: true, get() { return node || document; } });
 
-  // cancel html streaming
-  if (sharedConfig.registry && !sharedConfig.done) sharedConfig.done = _$HY.done = true;
-
   while (node) {
     const handler = node[key];
     if (handler && !node.disabled) {
@@ -377,157 +362,3 @@ function eventHandler(e) {
 function appendNodes(parent, array, marker = null) {
   for (let i = 0, len = array.length; i < len; i++) parent.insertBefore(array[i], marker);
 }
-
-// const propTraps = {
-//   get(_, property) {return _.get(property)},
-//   has(_, property) {return _.has(property)},
-//   set: trueFn,
-//   deleteProperty: trueFn,
-//   getOwnPropertyDescriptor(_, property) {
-//     return {
-//       configurable: true,
-//       enumerable: true,
-//       get() {return _.get(property);},
-//       set: trueFn,
-//       deleteProperty: trueFn
-//     };
-//   },
-//   ownKeys(_) {return _.keys();}
-// };
-
-// function trueFn() {return true;}
-
-// function resolveSource(s) {
-//   return (s = typeof s === "function" ? s() : s) == null ? {} : s;
-// }
-
-// function mergeProps(...sources) {
-//   return new Proxy(
-//     {
-//       get(property) {
-//         for (let i = sources.length - 1; i >= 0; i--) {
-//           const v = resolveSource(sources[i])[property];
-//           if (v !== undefined) return v;
-//         }
-//       },
-//       has(property) {
-//         for (let i = sources.length - 1; i >= 0; i--) {
-//           if (property in resolveSource(sources[i])) return true;
-//         }
-//         return false;
-//       },
-//       keys() {
-//         const keys = [];
-//         for (let i = 0; i < sources.length; i++)
-//           keys.push(...Object.keys(resolveSource(sources[i])));
-//         return [...new Set(keys)];
-//       }
-//     },
-//     propTraps
-//   );
-// }
-
-// Hydrate
-// export function hydrate(code, element, options = {}) {
-//   sharedConfig.completed = globalThis._$HY.completed;
-//   sharedConfig.events = globalThis._$HY.events;
-//   sharedConfig.load = id => globalThis._$HY.r[id];
-//   sharedConfig.has = id => id in globalThis._$HY.r;
-//   sharedConfig.gather = root => gatherHydratable(element, root);
-//   sharedConfig.registry = new Map();
-//   sharedConfig.context = {
-//     id: options.renderId || "",
-//     count: 0
-//   };
-//   gatherHydratable(element, options.renderId);
-//   const dispose = render(code, element, [...element.childNodes], options);
-//   sharedConfig.context = null;
-//   return dispose;
-// }
-
-// function getNextElement(template) {
-//   let node, key;
-//   // if (!sharedConfig.context || !(node = sharedConfig.registry.get((key = getHydrationKey())))) {
-//   //   if ("_DX_DEV_" && sharedConfig.context)
-//   //     throw new Error(`Hydration Mismatch. Unable to find DOM nodes for hydration key: ${key}`);
-//   //   return template();
-//   // }
-//   if (sharedConfig.completed) sharedConfig.completed.add(node);
-//   sharedConfig.registry.delete(key);
-//   return node;
-// }
-
-// function getNextMatch(el, nodeName) {
-//   while (el && el.localName !== nodeName) el = el.nextSibling;
-//   return el;
-// }
-
-// function getNextMarker(start) {
-//   let end = start,
-//     count = 0,
-//     current = [];
-//   if (sharedConfig.context) {
-//     while (end) {
-//       if (end.nodeType === 8) {
-//         const v = end.nodeValue;
-//         if (v === "$") count++;
-//         else if (v === "/") {
-//           if (count === 0) return [end, current];
-//           count--;
-//         }
-//       }
-//       current.push(end);
-//       end = end.nextSibling;
-//     }
-//   }
-//   return [end, current];
-// }
-
-// function runHydrationEvents() {
-//   if (sharedConfig.events && !sharedConfig.events.queued) {
-//     queueMicrotask(() => {
-//       const { completed, events } = sharedConfig;
-//       events.queued = false;
-//       while (events.length) {
-//         const [el, e] = events[0];
-//         if (!completed.has(el)) return;
-//         eventHandler(e);
-//         events.shift();
-//       }
-//     });
-//     sharedConfig.events.queued = true;
-//   }
-// }
-
-// function gatherHydratable(element, root) {
-//   const templates = element.querySelectorAll(`*[data-hk]`);
-//   for (let i = 0; i < templates.length; i++) {
-//     const node = templates[i];
-//     const key = node.getAttribute("data-hk");
-//     if ((!root || key.startsWith(root)) && !sharedConfig.registry.has(key))
-//       sharedConfig.registry.set(key, node);
-//   }
-// }
-
-// export function getHydrationKey() {
-//   const hydrate = sharedConfig.context;
-//   return `${hydrate.id}${hydrate.count++}`;
-// }
-
-// export function NoHydration(props) {
-//   return sharedConfig.context ? undefined : props.children;
-// }
-
-// export function Hydration(props) {
-//   return props.children;
-// }
-
-// const voidFn = () => undefined;
-
-// experimental
-// export const RequestContext = Symbol();
-
-// deprecated
-// export function innerHTML(parent, content) {
-//   !sharedConfig.context && (parent.innerHTML = content);
-// }
