@@ -25,4 +25,6 @@ import {hyperscript} from './hyperscript.js'
 
 const r = runtime(window), h = hyperscript(r), render = r.render
 
-export {h,render,runtime,hyperscript}
+const e0 = 1e1
+
+export {h,render,runtime,hyperscript,e0}
