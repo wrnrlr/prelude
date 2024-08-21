@@ -98,48 +98,48 @@ function dynamicProperty(props, key) {
   return props;
 }
 
-function tw(rules) {
-  const classes = (classes) => classes.filter(c=>!rules.some(r=>c.match(r[0]))).join(' ')
-  const styles = (classes) => classes.reduce((acc,c) => {
-    for (const r of rules) {
-      const m = c.match(r[0])
-      if (m) acc.push(r[1](...m.splice(1)))
-    }
-    return acc
-  },[]).join(';')
-  return props => {
-    if (!props.class) return
-    const cd = Object.getOwnPropertyDescriptor(props,'class'), cf = typeof cd.value === 'function'
-    props.class = cf ? ()=>classes(cd.value().split(' ')) : classes(cd.value.split(' '))
-    if (!props.style) props.style = cf ? ()=>styles(cd.value().split(' ')) : styles(cd.value.split(' '))
-    else {
-      const sd = Object.getOwnPropertyDescriptor(props,'style'), sf = typeof sd.value === 'function'
-      if (cf) props.style = sf ? ()=>styles(cd.value().split(' ')) + ';' + sd.value() : ()=>styles(cd.value().split(' ')) + ';' + sd.value
-      else {
-        const ca = styles(cd.value.split(' '))
-        props.style = sf ? () => ca +  ';' + sd.value() : ca + ';' + sd.value
-      }
-    }
-  }
-}
+// function tw(rules) {
+//   const classes = (classes) => classes.filter(c=>!rules.some(r=>c.match(r[0]))).join(' ')
+//   const styles = (classes) => classes.reduce((acc,c) => {
+//     for (const r of rules) {
+//       const m = c.match(r[0])
+//       if (m) acc.push(r[1](...m.splice(1)))
+//     }
+//     return acc
+//   },[]).join(';')
+//   return props => {
+//     if (!props.class) return
+//     const cd = Object.getOwnPropertyDescriptor(props,'class'), cf = typeof cd.value === 'function'
+//     props.class = cf ? ()=>classes(cd.value().split(' ')) : classes(cd.value.split(' '))
+//     if (!props.style) props.style = cf ? ()=>styles(cd.value().split(' ')) : styles(cd.value.split(' '))
+//     else {
+//       const sd = Object.getOwnPropertyDescriptor(props,'style'), sf = typeof sd.value === 'function'
+//       if (cf) props.style = sf ? ()=>styles(cd.value().split(' ')) + ';' + sd.value() : ()=>styles(cd.value().split(' ')) + ';' + sd.value
+//       else {
+//         const ca = styles(cd.value.split(' '))
+//         props.style = sf ? () => ca +  ';' + sd.value() : ca + ';' + sd.value
+//       }
+//     }
+//   }
+// }
 
-const spacing = {p:'padding', m:'margin'}
-const toDirection = {b:'bottom', l:'left', r:'right', t:'top'}
-const toSurface = {bg:'background',text:'text',border:'border',outline:'outline'}
-const alignContent = {start:'flex-start',center:'center',end:'flex-end',between:'space-between',around:'space-around',evenly:'space-evenly'}
-const toColor = (name,weight) => 'red'
+// const spacing = {p:'padding', m:'margin'}
+// const toDirection = {b:'bottom', l:'left', r:'right', t:'top'}
+// const toSurface = {bg:'background',text:'text',border:'border',outline:'outline'}
+// const alignContent = {start:'flex-start',center:'center',end:'flex-end',between:'space-between',around:'space-around',evenly:'space-evenly'}
+// const toColor = (name,weight) => 'red'
 
-const rules = [
-  // padding & margin
-  [/([pm])-(\d+)/, (pm,size)=>`${spacing[pm]}:${size/4}rem`],
-  // border
-  // [/b-%d/, (width)=>({'border-size':width})]
-  // bg & text & border & outline
-  // [/(bg|text|border|outline)-\W+-\d+/, (style,color,weight)=>({[toSurface[style]]:toColor(color,weight)})],
-  // display
-  // [/(block|inline|inline-block|flex|inline-flex|none)/, (display)=>({display})],
-  // [/items-(start|center|end|stretch|baseline)/, (pos)=>({'align-items':pos})],
-  // [/justify-(start|center|end|stretch|baseline)/, (pos)=>({'justify-content':pos})],
-  // [/content-(start|center|end|between|around|evenly)/, (pos)=>({'align-content':alignContent[pos]})],
-  // [/self-(auto|start|center|end|stretch|baseline)/, (pos)=>({'aligh-self':pos})],
-]
+// const rules = [
+//   // padding & margin
+//   [/([pm])-(\d+)/, (pm,size)=>`${spacing[pm]}:${size/4}rem`],
+//   // border
+//   // [/b-%d/, (width)=>({'border-size':width})]
+//   // bg & text & border & outline
+//   // [/(bg|text|border|outline)-\W+-\d+/, (style,color,weight)=>({[toSurface[style]]:toColor(color,weight)})],
+//   // display
+//   // [/(block|inline|inline-block|flex|inline-flex|none)/, (display)=>({display})],
+//   // [/items-(start|center|end|stretch|baseline)/, (pos)=>({'align-items':pos})],
+//   // [/justify-(start|center|end|stretch|baseline)/, (pos)=>({'justify-content':pos})],
+//   // [/content-(start|center|end|between|around|evenly)/, (pos)=>({'align-content':alignContent[pos]})],
+//   // [/self-(auto|start|center|end|stretch|baseline)/, (pos)=>({'aligh-self':pos})],
+// ]
