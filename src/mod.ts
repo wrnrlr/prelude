@@ -1,4 +1,4 @@
-import {signal,effect,sample} from './signal.ts'
+import {signal,computed,effect,sample} from './signal.ts'
 import {runtime} from './runtime.js'
 import {hyperscript} from './hyperscript.js'
 
@@ -10,4 +10,4 @@ function onMount(fn: () => void) {
   effect(() => sample(fn));
 }
 
-export {signal,effect,sample,h,render,runtime,hyperscript,onMount,nbsp}
+export {signal,computed,effect,sample,h,render,runtime,hyperscript,onMount,nbsp}
