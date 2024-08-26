@@ -1,5 +1,5 @@
-import {effect,sample} from './signal.ts'
-const $ELEMENT = Symbol("hyper-element"), Fragment = (props) => props.children, {isArray} = Array;
+import {sample} from './signal.ts'
+const $ELEMENT = Symbol(), Fragment = (props) => props.children, {isArray} = Array;
 
 export function hyperscript(r, patch) {
   const window = r.window
@@ -21,64 +21,53 @@ export function hyperscript(r, patch) {
       element = Fragment
       console.log('-> fragment',element,props,rest)
     } else if (isArray(props) || typeof props==='string') {
-      rest = props
+      rest = props || []
       props = {}
-      console.log('-> no props',element,props,rest)
     } else {
       rest = rest || []
-      console.log('-> props',element,props,rest)
+      props = props || {}
     }
 
     let ret;
 
     if (element.call) {
-      ret = () => {
-        console.log('~~>',element,props,rest)
-        const d = Object.getOwnPropertyDescriptors(props)
-        if (rest) props.children = rest
-        for (const k in d) {
-          console.log('=> prop', k, d[k])
-          if (isArray(d[k].value)) {
-            const list = d[k].value
-            props[k] = () => {
-              for (let i = 0; i < list.length; i++) while (list[i][$ELEMENT]) list[i] = list[i]()
-              return list
-            }
-            console.log('===> array dynamic props')
-            dynamicProperty(props, k)
-          } else if (d[k].value?.call && !d[k].value.length) { // ??
-            console.log('===> basic dynamic props')
-            dynamicProperty(props, k) // ??
+      const d = Object.getOwnPropertyDescriptors(props)
+      if (rest) props.children = rest
+      for (const k in d) {
+        if (isArray(d[k].value)) {
+          const list = d[k].value
+          props[k] = () => {
+            for (let i = 0; i < list.length; i++) while (list[i][$ELEMENT]) list[i] = list[i]()
+            return list
           }
+          dynamicProperty(props, k)
+        } else if (d[k].value?.call && !d[k].value.length) { // ??
+          dynamicProperty(props, k)
         }
-        return sample(()=>element(props))
       }
+      ret = () => sample(()=>element(props))
     } else {
       const multiExpression = detectMultiExpression(arguments) ? null : undefined
       const tag = parseTag(element)
-      ret = () => {
-        const e = r.element(tag.name)
-        console.log('-->',element,props,rest)
-        if (tag.id) e.setAttribute('id',tag.id)
-        if (tag.classes?.length) {
-          const cd = Object.getOwnPropertyDescriptor(props,'class') ?? {value:'',writable:true,enumerable:true}
-          props.class = !cd.value.call ? [...tag.classes,...cd.value.split(' ')].filter(c=>c).join(' ') :
-            () => [...tag.classes,...cd.value().split(' ')].filter(c=>c).join(' ')
-        }
-        if (patch) patch(props)
-        let dynamic = r.assign
-        const d = Object.getOwnPropertyDescriptors(props)
-        for (const k in d) {
-          if (k !== "ref" && !k.startsWith('on') && d[k].value?.call) { // maybe d[k].call ??
-            console.log('dynamic prop', k,d[k].value.toString())
-            dynamicProperty(props, k)
-            dynamic = r.spread
-          } else if (d[k].get) dynamic = r.spread
-        }
-        dynamic(e, props, !!rest?.length)
-        item(e,rest,multiExpression)
-        return e
+      const e = r.element(tag.name)
+      if (tag.id) e.setAttribute('id',tag.id)
+      if (tag.classes?.length) {
+        const cd = Object.getOwnPropertyDescriptor(props,'class') ?? {value:'',writable:true,enumerable:true}
+        props.class = !cd.value.call ? [...tag.classes,...cd.value.split(' ')].filter(c=>c).join(' ') :
+          () => [...tag.classes,...cd.value().split(' ')].filter(c=>c).join(' ')
       }
+      if (patch) patch(props)
+      let dynamic = r.assign
+      const d = Object.getOwnPropertyDescriptors(props)
+      for (const k in d) {
+        if (k !== "ref" && !k.startsWith('on') && d[k].value?.call) { // maybe d[k].call ??
+          dynamicProperty(props, k)
+          dynamic = r.spread
+        } else if (d[k].get) dynamic = r.spread
+      }
+      dynamic(e, props, !!rest?.length)
+      item(e,rest,multiExpression)
+      ret = () => e
     }
     ret[$ELEMENT] = true
     return ret
@@ -110,12 +99,9 @@ function parseTag(tag) {
 }
 
 function dynamicProperty(props, key) {
-  const src = props[key];
-  Object.defineProperty(props, key, {
-    get() { return src(); },
-    enumerable: true
-  });
-  return props;
+  const src = props[key]
+  Object.defineProperty(props, key, {get() {return src()},enumerable:true})
+  return props
 }
 
 // function tw(rules) {
