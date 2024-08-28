@@ -1,37 +1,47 @@
 import {effect,sample} from './signal.ts'
 import reconcileArrays from './reconcile.js'
-import {SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
-export {Properties, ChildProperties, getPropAlias, Aliases, DOMElements, SVGElements, SVGNamespace, DelegatedEvents} from './constants.ts'
+import {SVGNamespace,SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
+import type {Window,Mountable,Element,Node} from './constants.ts'
 
 const {isArray} = Array
 
-export function runtime(window) {
-  const document = window.document,
-    isSVG = e => e instanceof window.SVGElement,
-    element = name => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
-    text = s => document.createTextNode(s)
+export type Runtime = {
+  window:Window
+  render(code:()=>void, element:Element, init:any): any;
+  insert(parent:Mountable, accessor:any, marker?:Node|null, init?:any): any;
+  spread(node:Element, accessor:any, skipChildren?: boolean): void;
+  assign(node:Element, props:any, skipChildren?:boolean): void;
+  element(name:string): any;
+  text(s:string): any;
+}
 
-  function render(code, element, init) {
+export function runtime(window:Window):Runtime {
+  const document = window.document,
+    isSVG = (e:any) => e instanceof (window.SVGElement as any),
+    element = (name:string) => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
+    text = (s:string) => document.createTextNode(s)
+
+  function render(code:()=>void, element:Element, init:any) {
     if (!element) throw new Error("The `element` passed to `render(..., element)` doesn't exist.");
     if (element === document) code()
     else insert(element, code(), element.firstChild ? null : undefined, init)
   }
 
-  function insert(parent, accessor, marker, initial) {
+  function insert(parent:Mountable, accessor:any, marker?:Node|null, initial?:any) {
     if (marker !== undefined && !initial) initial = [];
     if (!accessor.call) return insertExpression(parent, accessor, initial||[], marker);
     effect(current => insertExpression(parent, accessor(), current, marker), initial||[]);
   }
 
-  function spread(node, props = {}, skipChildren) {
-    const prevProps = {};
+  function spread(node:Element, props:any = {}, skipChildren:boolean) {
+    const prevProps:any = {};
     if (!skipChildren) effect(() => (prevProps.children = insertExpression(node, props.children, prevProps.children)));
     effect(() => (props.ref?.call ? sample(() => props.ref(node)) : (props.ref = node)));
     effect(() => assign(node, props, true, prevProps, true));
     return prevProps;
   }
 
-  function assign(node, props, skipChildren, prevProps = {}, skipRef = false) {
+  function assign(node:Element, props:any, skipChildren:boolean, prevProps:any = {}, skipRef:boolean = false) {
     const svg = isSVG(node)
     props || (props = {});
     for (const prop in prevProps) {
@@ -50,7 +60,7 @@ export function runtime(window) {
     }
   }
 
-  function assignProp(node, prop, value, prev, isSVG, skipRef) {
+  function assignProp(node:any, prop:any, value:any, prev:any, isSVG:any, skipRef:any) {
     let isCE, isProp, isChildProp, propAlias, forceProp;
     if (prop === "style") return style(node, value, prev);
     if (prop === "classList") return classList(node, value, prev);
@@ -99,7 +109,7 @@ export function runtime(window) {
     return value;
   }
 
-  function insertExpression(parent, value, current, marker, unwrapArray) {
+  function insertExpression(parent:any, value:any, current?:any, marker?:any, unwrapArray?:any) {
     while (current?.call) current = current();
     if (value === current) return current;
     const t = typeof value,
@@ -132,7 +142,7 @@ export function runtime(window) {
       });
       return () => current;
     } else if (isArray(value)) {
-      const array = [];
+      const array:any[] = [];
       const currentArray = current && isArray(current);
       if (normalizeIncomingArray(array, value, current, unwrapArray)) {
         effect(() => (current = insertExpression(parent, array, current, marker, true)));
@@ -162,7 +172,7 @@ export function runtime(window) {
     return current;
   }
 
-  function normalizeIncomingArray(normalized, array, current, unwrap) {
+  function normalizeIncomingArray(normalized:any, array:any, current:any, unwrap?:any):any {
     let dynamic = false;
     for (let i = 0, len = array.length; i < len; i++) {
       let item = array[i]
@@ -194,7 +204,7 @@ export function runtime(window) {
     return dynamic;
   }
 
-  function cleanChildren(parent, current, marker, replacement) {
+  function cleanChildren(parent:any, current?:any, marker?:any, replacement?:any):any {
     if (marker === undefined) return (parent.textContent = "");
     const node = replacement || document.createTextNode('');
     if (current.length) {
@@ -217,7 +227,7 @@ export function runtime(window) {
 
 const $$EVENTS = "_$DX_DELEGATE"
 
-function delegateEvents(eventNames, document) {
+function delegateEvents(eventNames:any, document:any) {
   const e = document[$$EVENTS] || (document[$$EVENTS] = new Set());
   for (let i = 0, l = eventNames.length; i < l; i++) {
     const name = eventNames[i];
@@ -228,7 +238,7 @@ function delegateEvents(eventNames, document) {
   }
 }
 
-function eventHandler(e) {
+function eventHandler(e:any) {
   const key = `$$${e.type}`
   let node = (e.composedPath && e.composedPath()[0]) || e.target
   // reverse Shadow DOM retargetting
@@ -253,17 +263,17 @@ function eventHandler(e) {
 //   }
 // }
 
-function setAttribute(node, name, value) {
+function setAttribute(node:any, name:any, value?:any):any {
   if (value == null) node.removeAttribute(name);
   else node.setAttribute(name, value);
 }
 
-function setAttributeNS(node, namespace, name, value) {
+function setAttributeNS(node:any, namespace:any, name:any, value:any):any {
   if (value == null) node.removeAttributeNS(namespace, name);
   else node.setAttributeNS(namespace, name, value);
 }
 
-function addEventListener(node, name, handler, delegate) {
+function addEventListener(node:any, name:any, handler:any, delegate:any):any {
   if (delegate) {
     if (isArray(handler)) {
       node[`$$${name}`] = handler[0];
@@ -271,11 +281,11 @@ function addEventListener(node, name, handler, delegate) {
     } else node[`$$${name}`] = handler;
   } else if (isArray(handler)) {
     const handlerFn = handler[0];
-    node.addEventListener(name, (handler[0] = e => handlerFn.call(node, handler[1], e)));
+    node.addEventListener(name, (handler[0] = (e:any) => handlerFn.call(node, handler[1], e)));
   } else node.addEventListener(name, handler);
 }
 
-function classList(node, value, prev = {}) {
+function classList(node:any, value:any, prev:any = {}):any {
   const classKeys = Object.keys(value || {}),
     prevKeys = Object.keys(prev);
   let i, len;
@@ -295,7 +305,7 @@ function classList(node, value, prev = {}) {
   return prev;
 }
 
-function style(node, value, prev) {
+function style(node:any, value:any, prev:any) {
   if (!value) return prev ? setAttribute(node, "style") : value;
   const nodeStyle = node.style;
   if (typeof value === "string") return (nodeStyle.cssText = value);
@@ -317,16 +327,16 @@ function style(node, value, prev) {
   return prev;
 }
 
-function toPropertyName(name) {
-  return name.toLowerCase().replace(/-([a-z])/g, (_, w) => w.toUpperCase());
+function toPropertyName(name:any):any {
+  return name.toLowerCase().replace(/-([a-z])/g, (_:any, w:string) => w.toUpperCase());
 }
 
-function toggleClassKey(node, key, value) {
+function toggleClassKey(node:any, key:any, value:any) {
   const classNames = key.trim().split(/\s+/);
   for (let i = 0, nameLen = classNames.length; i < nameLen; i++)
     node.classList.toggle(classNames[i], value);
 }
 
-function appendNodes(parent, array, marker = null) {
+function appendNodes(parent:any, array:any, marker:any = null) {
   for (let i = 0, len = array.length; i < len; i++) parent.insertBefore(array[i], marker);
 }
