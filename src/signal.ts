@@ -128,3 +128,7 @@ function cleared(self:Set<Effect<unknown>>):Effect<unknown>[] {
   self.clear();
   return entries;
 }
+
+export function onMount(fn: () => void) {
+  effect(() => sample(fn));
+}
