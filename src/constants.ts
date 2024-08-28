@@ -1,3 +1,23 @@
+/// Non breakable space
+export const nbsp:string = '\u00A0'
+
+export declare type Window = { document: Document;  SVGElement: typeof SVGElements}
+export declare type Element = any
+declare type SVGElement = any
+declare type Document = any
+declare type ShadowRoot = any
+declare type DocumentFragment = any
+export declare type Node = any
+
+export type Mountable = Element | Document | ShadowRoot | DocumentFragment | Node;
+type ExpandableNode = Node & { [key: string]: any };
+
+export type PropsKeys = typeof Properties extends Set<infer K> ? K : never;
+export type BooleanProps = typeof BooleanAttributes extends Set<infer K> ? K : never;
+export type HandlerProps = typeof DelegatedEvents extends Set<infer K> ? K : never;
+export type ChildProps = {children?:any[]}
+export type Props = BooleanProps|HandlerProps|ChildProps|Record<PropsKeys,any>
+
 const booleans:string[] = [
   'allowfullscreen',
   'async',
