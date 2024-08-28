@@ -6,17 +6,15 @@
 import {h,signal,effect,render} from '../src/mod.ts'
 
 function Input(props) {
-  effect(()=>console.log('input',props.value()))
-  return h('input',{type:'number',value:props.value,onInput:e=>props.value(e.target.value)})
+  const onInput = e => props.value(e.target.value)
+  return h('input',{type:'number',value:props.value,onInput})
 }
 
 render(()=>{
   const count = signal(1)
-  effect(()=>console.log(count()))
-  return [
+  return h[
     h('button',{onClick(e){count(i=>i-1)}},'-'),
-    h('input',{type:'number',value:count,onInput:e=>count(e.target.value)}),
-    // h(Input,{value:()=>count}),
+    h(Input,{value:()=>count}),
     h('button',{onClick(e){count(i=>i+1)}},'+')
   ]
 },document.body)
