@@ -1,4 +1,4 @@
-export {signal,effect,sample,batch,memo,onMount} from './signal.ts'
+export {signal,effect,computed,sample,batch,memo,onMount} from './signal.ts'
 export {nbsp} from './constants.ts'
 export {For} from './flow.ts'
 
