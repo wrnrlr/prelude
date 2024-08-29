@@ -6,10 +6,10 @@ import {signal,computed,effect,sample,batch} from './signal.ts'
 describe('signal',()=>{
   const a = signal(1)
   assertEquals(a(),1)
-  assertEquals(a.peek(),1)
-  assertEquals(a.valueOf(),1)
-  assertEquals(a.toJSON(),1)
-  assertEquals(a.toString(),'1')
+  describe('peek()',()=>assertEquals(a.peek(),1))
+  describe('valueOf()',()=>assertEquals(a.valueOf(),1))
+  describe('toJSON()',()=>assertEquals(a.toJSON(),1))
+  describe('toString()',()=>assertEquals(a.toString(),'1'))
   assertEquals(a(a()+1),2)
   assertEquals(a(i=>i+1),3)
   assertEquals(a('Hi'),'Hi')
@@ -40,13 +40,17 @@ describe('computed',()=>{
     b = signal(10),
     c = computed(()=>a()+b())
   assertEquals(c(),11)
+  describe('peek()',()=>assertEquals(c.peek(),11))
+  describe('valueOf()',()=>assertEquals(c.valueOf(),11))
+  describe('toJSON()',()=>assertEquals(c.toJSON(),11))
+  describe('toString()',()=>assertEquals(c.toString(),'11'))
   a(2)
   assertEquals(c(),12)
   b(20)
   assertEquals(c(),22)
   let i = 0
-  effect(()=>{c();  i++})
-  batch(()=>{a(v => v++);  b(v=>v++)})
+  effect(()=>{c(); i++})
+  batch(()=>{a(v => v++); b(v=>v++)})
 })
 
 describe('batch',()=>{
@@ -58,8 +62,8 @@ describe('batch',()=>{
   assertEquals(i,2)
 })
 
-import {runtime} from './runtime.js'
-import {hyperscript} from './hyperscript.js'
+import {runtime} from './runtime.ts'
+import {hyperscript} from './hyperscript.ts'
 import {JSDOM} from 'npm:jsdom'
 
 describe("hyperscript", () => {
@@ -87,6 +91,30 @@ describe("hyperscript", () => {
     ])();
     assertEquals(template.outerHTML,FIXTURES[0])
   });
+
+  describe("Reactive Content", () => {
+    const name = signal('Alice')
+    const template = h("div", ["Hello ",name]);
+    assertEquals(template().outerHTML,`<div>Hello Alice</div>`)
+    name('Bob')
+    assertEquals(template().outerHTML,`<div>Hello Bob</div>`)
+  });
+
+  describe("Component without props or children", () => {
+    assertEquals(h('hr')().outerHTML,`<hr>`)
+  });
+
+  // describe("Custom Component", () => {
+  //   function Greeting(props) {
+  //     return h("div", ["Hello ",props.name]);
+  //   }
+  //   const name = signal('Alice')
+  //   const template = h(Greeting, {name:'Alice'});
+  //   assertEquals(template()(),`<div>Hello Alice</div>`)
+  //   name('Bob')
+  //   assertEquals(template().outerHTML,`<div>Hello Bob</div>`)
+  // });
+
 
 //   describe("Attribute Expressions", () => {
 //     const selected = signal(true),

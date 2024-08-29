@@ -73,16 +73,17 @@ export function computed<T>(fn:(v?:T)=>T, value?:T):Computed<T> {
   const self:any = {
     e: null,
     value: value,
+    get: () => {
+      if (!self.e) (self.e = create(()=>self.value=self.fn(self.value))).fn()
+      return self.value
+    },
     fn: fn,
     peek: () => self.value,
     valueOf: () => self.get(),
     toString: () => String(self.get()),
     toJSON: () => self.get(),
   }
-  const f = Object.assign(() => {
-    if (!self.e) (self.e = create(()=>self.value=self.fn(self.value))).fn()
-    return self.value
-  },self)
+  const f = Object.assign(self.get,self)
   return f as Computed<T>
 }
 
