@@ -12,7 +12,7 @@ function Input(props) {
 
 render(()=>{
   const count = signal(1)
-  return h[
+  return [
     h('button',{onClick(e){count(i=>i-1)}},'-'),
     h(Input,{value:()=>count}),
     h('button',{onClick(e){count(i=>i+1)}},'+')
