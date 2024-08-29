@@ -4,6 +4,6 @@ export {nbsp} from './constants.ts'
 import {runtime} from './runtime.ts'
 import {hyperscript} from './hyperscript.ts'
 
-const r = runtime(window), h = hyperscript(r), render = r.render
+const r = runtime(window as any), h = hyperscript(r), render = r.render
 
 export {h,render}
