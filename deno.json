@@ -16,6 +16,6 @@
   "tasks": {
     "dev": "deno run -A npm:vite@^5.4.2",
     "test": "deno test -A --unstable-sloppy-imports ./src/test.js",
-    "docs": "deno run -A npm:typedoc --tsconfig deno.json src/mod.ts"
+    "docs": "deno run -A npm:typedoc ./src/mod.ts"
   }
 }
