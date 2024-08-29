@@ -1,80 +1,89 @@
 import {sample} from './signal.ts'
-const $ELEMENT = Symbol(), Fragment = (props) => props.children, {isArray} = Array;
+import type {Props,Mountable} from './constants.ts'
+import type {Runtime} from './runtime.ts'
 
-export function hyperscript(r, patch) {
+const $ELEMENT = Symbol(), {isArray} = Array
+
+export type HyperScript = { <T extends Props> (element:Component<T>|Tag|any[],props:T,rest:any[]):()=>Component<T> }
+type Component<T extends Props> = {(props:T): Mountable, [$ELEMENT]?: boolean}
+type Tag = string
+
+const Fragment:Component<Props> = <T extends Props>(props:T):Mountable => (props as any).children
+
+export function hyperscript(r:Runtime, patch?:any):HyperScript {
   const window = r.window
 
-  function item(element,children,multiExpression) {
+  function item<T extends Props>(element:Element|Element[]|Component<T>|Component<T>[],children:string|any[],multiExpression?:Node|null) {
     if (children===null) return
     if (isArray(children)) for (const child of children) item(element, child, multiExpression)
-    else if (children instanceof window.Element) r.insert(element, children, multiExpression)
-    else if (typeof children==='string') element.appendChild(r.text(children))
-    else if (children.call) {
-      while ((children)[$ELEMENT]) children = (children)()
+    else if ((children as unknown) instanceof (window as any).Element) r.insert(element, children, multiExpression)
+    else if (typeof children==='string') (element as any).appendChild(r.text(children))
+    else if ((children as any).call) {
+      while ((children as any)[$ELEMENT]) children = (children as any)()
       r.insert(element, children, multiExpression)
-    } else element.appendChild(r.text(children.toString()))
+    } else (element as any).appendChild(r.text((children as any).toString()))
   }
 
-  return function (element,props,rest) {
-    if (element[$ELEMENT]) {
-      rest = element
-      element = Fragment
-      console.log('-> fragment',element,props,rest)
-    } else if (isArray(props) || typeof props==='string') {
+  function h<T extends Props>(element:Component<T>|Tag|any[],props:T|string|any[],rest:string|any[]):Component<T> {
+    if ((element as Component<T>)[$ELEMENT]) {console.warn('-> fragment',element,props,rest)}
+    if (isArray(props) || typeof props==='string') {
       rest = props || []
-      props = {}
+      props = {} as T
     } else {
       rest = rest || []
-      props = props || {}
+      props = props ?? {}
     }
 
-    let ret;
+    let ret:Component<T>;
 
-    if (element.call) {
+    if ((element as any).call) {
       const d = Object.getOwnPropertyDescriptors(props)
-      if (rest) props.children = rest
+      if (rest) (props as any).children = rest
       for (const k in d) {
         if (isArray(d[k].value)) {
-          const list = d[k].value
-          props[k] = () => {
+          const list:any = (d[k] as any).value
+            (props as any)[k] = () => {
             for (let i = 0; i < list.length; i++) while (list[i][$ELEMENT]) list[i] = list[i]()
             return list
           }
-          dynamicProperty(props, k)
+          dynamicProperty(props as any, k)
         } else if (d[k].value?.call && !d[k].value.length) { // ??
-          dynamicProperty(props, k)
+          dynamicProperty(props as any, k)
         }
       }
-      ret = () => sample(()=>element(props))
+      ret = () => sample(()=>(element as any)(props))
     } else {
       const multiExpression = detectMultiExpression(arguments) ? null : undefined
-      const tag = parseTag(element)
+      const tag = parseTag(element as Tag)
       const e = r.element(tag.name)
+      const props2 = props as any
       if (tag.id) e.setAttribute('id',tag.id)
       if (tag.classes?.length) {
-        const cd = Object.getOwnPropertyDescriptor(props,'class') ?? {value:'',writable:true,enumerable:true}
-        props.class = !cd.value.call ? [...tag.classes,...cd.value.split(' ')].filter(c=>c).join(' ') :
+        const cd = Object.getOwnPropertyDescriptor(props2,'class') ?? ({value:'',writable:true,enumerable:true} as any)
+        props2.class = (!cd.value.call) ? [...tag.classes,...cd.value.split(' ')].filter(c=>c).join(' ') :
           () => [...tag.classes,...cd.value().split(' ')].filter(c=>c).join(' ')
       }
-      if (patch) patch(props)
+      if (patch) patch(props2)
       let dynamic = r.assign
-      const d = Object.getOwnPropertyDescriptors(props)
+      const d = Object.getOwnPropertyDescriptors(props2)
       for (const k in d) {
         if (k !== "ref" && !k.startsWith('on') && d[k].value?.call) { // maybe d[k].call ??
-          dynamicProperty(props, k)
+          dynamicProperty(props2, k)
           dynamic = r.spread
         } else if (d[k].get) dynamic = r.spread
       }
-      dynamic(e, props, !!rest?.length)
+      dynamic(e, props2, !!rest?.length)
       item(e,rest,multiExpression)
       ret = () => e
     }
     ret[$ELEMENT] = true
     return ret
   }
+
+  return h as any
 }
 
-function detectMultiExpression(list) {
+function detectMultiExpression(list:any):boolean {
   if (typeof list[0] === "string") return true
   for (const i of list) {
     if (typeof i === "function") return true
@@ -84,8 +93,8 @@ function detectMultiExpression(list) {
 }
 
 // ^([a-zA-Z]\w*)?(#[a-zA-Z][-\w]*)?(.[a-zA-Z][-\w]*)*
-function parseTag(tag) {
-  const classes = [];
+function parseTag(tag:string):{name:string,id?:string,classes:string[]} {
+  const classes:string[] = [];
   let name, id
   const m = tag.split(/([\.#]?[^\s#.]+)/)
   if (/^\.|#/.test(m[1])) name = 'div'
@@ -95,10 +104,10 @@ function parseTag(tag) {
     else if (v[0] === ".") classes.push(v.slice(1))
     else if (v[0] === "#") id = v.slice(1)
   }
-  return {name,classes,id}
+  return {name:name as string,classes,id}
 }
 
-function dynamicProperty(props, key) {
+function dynamicProperty(props:Record<string,any>, key:string):Record<string,any> {
   const src = props[key]
   Object.defineProperty(props, key, {get() {return src()},enumerable:true})
   return props
