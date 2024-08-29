@@ -58,7 +58,7 @@ describe('batch',()=>{
   let i = 0
   effect(()=>{a(); b(); i++})
   assertEquals(i,1)
-  batch(()=>{a(v=>v++);  b(v=>v++)})
+  batch(()=>{a(v=>v++); b(v=>v++)})
   assertEquals(i,2)
 })
 
