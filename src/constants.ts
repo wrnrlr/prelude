@@ -1,4 +1,7 @@
-/// Non breakable space
+/**
+* Non breakable space
+* @group Utils
+*/
 export const nbsp:string = '\u00A0'
 
 export declare type Window = { document: Document;  SVGElement: typeof SVGElements}

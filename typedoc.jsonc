@@ -1,0 +1,13 @@
+{
+  "name": "PreludeJS",
+  "compilerOptions": {
+    "strict": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noImplicitThis": false,
+    "allowImportingTsExtensions": true,
+    "lib": [],
+    "target": ["esnext"],
+    "downlevelIteration": true
+  }
+}
