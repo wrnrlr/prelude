@@ -3,36 +3,74 @@
 
 <script type="module">
 
-import {h,signal,render} from '../src/mod.ts'
+import {h,signal,effect,computed,render} from '../src/mod.ts'
+
+const data = [
+  {description:'Buy groceries',done:false},
+  {description:'Clean car',done:false},
+  {description:'File taxes',done:true},
+]
+
+function wrap(s,k) {
+  if (typeof k === 'string') {
+    return (...args) => {
+      if (args.length) {
+        return s({...s(),[k]:args[0]})
+      } else {
+        return s()[k]
+      }
+    }
+  } else {
+    return (...args) => {
+      if (args.length) {
+        let old = s()
+        return s(old=>old.toSpliced(k,1,args[0]))
+      } else {
+        return s()[k]
+      }
+    }
+  }
+}
+
+function For(props) {
+  const children = props.children.call ? props.children() : ()=>props.children||[]
+  const f = (_,i)=>props.each(wrap(children,i))
+  return ()=>children().map(f)
+}
 
 function Input(props) {
   return h('input',{value:props.value,onInput:e=>props.value(e.target.value)})
 }
 
-function For(props) {
-  console.log('children',props.children,props.each)
-  return props.children.map(child => props.each(child))
+function Checkbox(props) {
+  return h('input',{type:'checkbox',checked:props.value,onInput:e => props.value(e.target.checked)})
 }
 
 function TodoItem(props) {
-  console.log('item',props)
-  return h('li',[
-    h('input',{type:'checkbox',checked:props.done}),
-    props.description
+  const description = wrap(props?.value,'description')
+  const done = wrap(props?.value,'done')
+  return h('li', [
+    h(Checkbox,{value:()=>done}),
+    h(Input,{value:()=>description}),
+    h('button',{onClick:props.onDelete},'x')
   ])
 }
 
 function App() {
-  const todos = signal([
-    {description:'Buy groceries',done:false},
-    {description:'Clean car',done:false},
-    {description:'File taxes',done:true},
-  ])
+  const name = signal('')
+  const todos = signal(data)
+  function onSubmit(e) {
+    e.preventDefault()
+    const description = name()
+    if (!description) return
+    todos(v=>[...v,{description,done:false}])
+    name('')
+  }
   return [
     h('h1','Todo'),
-    h('ul',todos().map(item =>
-      h(TodoItem,{description:item.description,done:item.done}))),
-    h('div',[h('input'),h('button','Add')])
+    h(For,{each:value=>h(TodoItem,{value:()=>value},'hi')},()=>todos),
+    h('form',{onSubmit},[h(Input,{value:()=>name}),h('button','+')]),
+    h('pre',[()=>'todos:'+name()+JSON.stringify(todos(),0,2)])
   ]
 }
 
@@ -41,5 +79,6 @@ render(App,document.body)
 </script>
 
 <style>
-
+ul,li {list-style-type: none}
+input {border-width: 0 0 1px 0; margin:0.25em}
 </style>
