@@ -6,7 +6,7 @@
 import {h,signal,effect,render} from '../src/mod.ts'
 
 function Input(props) {
-  const onInput = e => props.value(e.target.value)
+  const onInput = e => props.value(parseInt(e.target.value))
   return h('input',{type:'number',value:props.value,onInput})
 }
 
