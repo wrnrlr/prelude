@@ -1,5 +1,5 @@
 /**
-* Non breakable space
+* Non-breakable space in Unicode
 * @group Utils
 */
 export const nbsp:string = '\u00A0'
@@ -15,11 +15,10 @@ export declare type Node = any
 export type Mountable = Element | Document | ShadowRoot | DocumentFragment | Node;
 type ExpandableNode = Node & { [key: string]: any };
 
-export type PropsKeys = typeof Properties extends Set<infer K> ? K : never;
-export type BooleanProps = typeof BooleanAttributes extends Set<infer K> ? K : never;
-export type HandlerProps = typeof DelegatedEvents extends Set<infer K> ? K : never;
-export type ChildProps = {children?:any[]}
-export type Props = BooleanProps|HandlerProps|ChildProps|Record<PropsKeys,any>
+// type Expect<T extends true> = T;
+// type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false;
+// const test = {children:[] as any[]}
+// type test1 = Expect<Equal<typeof test, ElementProps>>
 
 const booleans:string[] = [
   'allowfullscreen',
