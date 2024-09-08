@@ -1,10 +1,6 @@
-export {signal,effect,computed,sample,batch,memo,onMount} from './signal.ts'
+export {signal,effect,sample,batch,memo,onMount} from './signal.ts'
 export {nbsp} from './constants.ts'
-export {For} from './flow.ts'
-
-import type {Signal,Effect,Computed} from './signal.ts'
-
-export type {Signal,Effect,Computed}
+// export {For} from './flow.js'
 
 import {runtime} from './runtime.ts'
 import {hyperscript} from './hyperscript.ts'

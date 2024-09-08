@@ -28,22 +28,23 @@ export function runtime(window:Window):Runtime {
   }
 
   function insert(parent:Mountable, accessor:any, marker?:Node|null, initial?:any) {
-    if (marker !== undefined && !initial) initial = [];
-    if (!accessor.call) return insertExpression(parent, accessor, initial||[], marker);
-    effect(current => insertExpression(parent, accessor(), current, marker), initial||[]);
+    if (marker !== undefined && !initial) initial = []
+    if (!accessor.call) return insertExpression(parent, accessor, initial||[], marker)
+    let current = initial||[]
+    effect(() => {current = insertExpression(parent, accessor(), current, marker)})
   }
 
   function spread(node:Element, props:any = {}, skipChildren:boolean) {
-    const prevProps:any = {};
-    if (!skipChildren) effect(() => (prevProps.children = insertExpression(node, props.children, prevProps.children)));
-    effect(() => (props.ref?.call ? sample(() => props.ref(node)) : (props.ref = node)));
-    effect(() => assign(node, props, true, prevProps, true));
-    return prevProps;
+    const prevProps:any = {}
+    if (!skipChildren) effect(() => (prevProps.children = insertExpression(node, props.children, prevProps.children)))
+    effect(() => (props.ref?.call ? sample(() => props.ref(node)) : (props.ref = node)))
+    effect(() => assign(node, props, true, prevProps, true))
+    return prevProps
   }
 
   function assign(node:Element, props:any, skipChildren:boolean, prevProps:any = {}, skipRef:boolean = false) {
     const svg = isSVG(node)
-    props || (props = {});
+    props || (props = {})
     for (const prop in prevProps) {
       if (!(prop in props)) {
         if (prop === "children") continue;
