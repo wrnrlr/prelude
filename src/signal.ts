@@ -1,7 +1,7 @@
 type Callback<T = void> = () => T
 export type EqualsFunction<T> = (value: T, valueNext: T) => boolean
 export type ErrorFunction = (error: unknown) => void
-type RootFunction<T> = (dispose: Callback) => T
+export type RootFunction<T> = (dispose: () => void) => T
 export type UpdateFunction<T> = (value: T) => T
 
 export type Getter<T> = { (): T }
@@ -182,28 +182,28 @@ export function effect(fn: Callback): void {
   new Computation(fn)
 }
 
-export function memo<T>( fn: Callback<T>, options?: Options<T> ): Getter<T> {
+export function memo<T>(fn: Callback<T>, options?: Options<T>): Getter<T> {
   return new Computation(fn, options).signal.get
 }
 
-export function root<T>( fn: RootFunction<T> ): T {
+export function root<T>(fn: RootFunction<T>): T {
   return new Root().wrap(fn)
 }
 
-export function createContext <T> (): Context<T | undefined>;
-export function createContext <T> ( defaultValue: T ): Context<T>;
-export function createContext <T> ( defaultValue?: T ) {
+export function createContext<T>(): Context<T | undefined>;
+export function createContext<T>(defaultValue: T): Context<T>;
+export function createContext<T>(defaultValue?: T) {
   const id = Symbol ()
   const get = (): T | undefined => OBSERVER?.get ( id ) ?? defaultValue
   const set = ( value: T ): void => OBSERVER?.set ( id, value )
   return {id, defaultValue, get, set}
 }
 
-export function useContext <T> (context: Context<T>): T {
+export function useContext<T>(context: Context<T>): T {
   return context.get()
 }
 
-export function getOwner (): Observer | undefined {
+export function getOwner(): Observer | undefined {
   return OBSERVER
 }
 
