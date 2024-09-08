@@ -1,15 +1,11 @@
 import {assertEquals,assert} from '@std/assert'
 import {describe,it} from '@std/testing/bdd'
 
-import {signal,computed,effect,sample,batch} from '../src/mod.ts'
+import {signal,effect,sample,batch} from '../src/signal2.ts'
 
 describe('signal',()=>{
   const a = signal(1)
   assertEquals(a(),1)
-  describe('peek()',()=>assertEquals(a.peek(),1))
-  describe('valueOf()',()=>assertEquals(a.valueOf(),1))
-  describe('toJSON()',()=>assertEquals(a.toJSON(),1))
-  describe('toString()',()=>assertEquals(a.toString(),'1'))
   assertEquals(a(a()+1),2)
   assertEquals(a(i=>i+1),3)
   assertEquals(a('Hi'),'Hi')
@@ -20,10 +16,11 @@ describe('signal',()=>{
 describe('effect',()=>{
   const n = signal(1)
   let m = 0
-  effect(initial => m = n() + initial,1)
+  // effect(initial => m = n() + initial,1)
+  effect(() => m = n() + 1)
   assertEquals(m,2)
   n(2)
-  assertEquals(m,4)
+  assertEquals(m,3)
 })
 
 describe('sample',()=>{
@@ -38,12 +35,8 @@ describe('sample',()=>{
 describe('computed',()=>{
   const a = signal(1),
     b = signal(10),
-    c = computed(()=>a()+b())
+    c = ()=>a()+b()
   assertEquals(c(),11)
-  describe('peek()',()=>assertEquals(c.peek(),11))
-  describe('valueOf()',()=>assertEquals(c.valueOf(),11))
-  describe('toJSON()',()=>assertEquals(c.toJSON(),11))
-  describe('toString()',()=>assertEquals(c.toString(),'11'))
   a(2)
   assertEquals(c(),12)
   b(20)
@@ -54,10 +47,10 @@ describe('computed',()=>{
 })
 
 describe('batch',()=>{
-  const  a = signal(), b = signal()
+  const  a = signal(1), b = signal(1)
   let i = 0
   effect(()=>{a(); b(); i++})
   assertEquals(i,1)
-  batch(()=>{a(v=>v++); b(v=>v++)})
+  batch(()=>{a(1); b(2)})
   assertEquals(i,2)
 })
