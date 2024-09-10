@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<title>Counter</title>
+
+<script type="module">
+
+import {h,signal,render,Show} from '../src/mod.ts'
+
+function App(props) {
+  const toggle = signal(true)
+  return [
+    h('button',{onClick:e=>toggle(v=>!v)},'toggle'),
+    h(Show,{when:toggle,fallback:'Ho'},'Hey')
+  ]
+}
+
+render(App,document.body)
+
+</script>

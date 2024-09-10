@@ -1,149 +1,196 @@
-import {signal,sample,type Getter} from './signal.ts'
+import {signal,sample,batch,memo} from './signal.ts'
 
 /**
+Show children if `when` prop is true, otherwise show `fallback`.
 @group Components
 */
-export function For(props:any):any {
+export function Show(props) {
+  const condition = memo(()=>props.when)
+  return memo(()=>{
+    const c = condition()
+    if (c) {
+      const child = props.children
+      const fn = typeof child === "function" && child.length > 0
+      return fn ? sample(() => child(() => props.when)) : child
+    } else return props.fallback
+  })
+}
+
+/**
+List
+@group Components
+*/
+export function List(props) {
 
 }
 
-// export function mapArray<T, U>(
-//   list: Getter<readonly T[] | undefined | null | false>,
-//   mapFn: (v: T, i: Getter<number>) => U,
-//   options: { fallback?: Getter<any> } = {}
-// ): () => U[] {
-//   let items: (T | typeof FALLBACK)[] = [],
-//     mapped: U[] = [],
-//     disposers: (() => void)[] = [],
-//     len = 0,
-//     indexes: ((v: number) => number)[] | null = mapFn.length > 1 ? [] : null;
+const $TRACK = Symbol('track')
 
-//   onCleanup(() => dispose(disposers));
-//   return () => {
-//     let newItems = list() || [],
-//       i: number,
-//       j: number;
-//     (newItems as any)[$TRACK]; // top level tracking
-//     return untrack(() => {
-//       let newLen = newItems.length,
-//         newIndices: Map<T | typeof FALLBACK, number>,
-//         newIndicesNext: number[],
-//         temp: U[],
-//         tempdisposers: (() => void)[],
-//         tempIndexes: ((v: number) => number)[],
-//         start: number,
-//         end: number,
-//         newEnd: number,
-//         item: T | typeof FALLBACK;
-
-//       // fast path for empty arrays
-//       if (newLen === 0) {
-//         if (len !== 0) {
-//           dispose(disposers);
-//           disposers = [];
-//           items = [];
-//           mapped = [];
-//           len = 0;
-//           indexes && (indexes = []);
-//         }
-//         if (options.fallback) {
-//           items = [FALLBACK];
-//           mapped[0] = createRoot(disposer => {
-//             disposers[0] = disposer;
-//             return options.fallback!();
-//           });
-//           len = 1;
-//         }
-//       }
-//       // fast path for new create
-//       else if (len === 0) {
-//         mapped = new Array(newLen);
-//         for (j = 0; j < newLen; j++) {
-//           items[j] = newItems[j];
-//           mapped[j] = createRoot(mapper);
-//         }
-//         len = newLen;
+// export function wrap(s,k) {
+//   if (typeof k === 'string') {
+//     return (...args) => {
+//       if (args.length) {
+//         return s({...s(),[k]:args[0]})
 //       } else {
-//         temp = new Array(newLen);
-//         tempdisposers = new Array(newLen);
-//         indexes && (tempIndexes = new Array(newLen));
-
-//         // skip common prefix
-//         for (
-//           start = 0, end = Math.min(len, newLen);
-//           start < end && items[start] === newItems[start];
-//           start++
-//         );
-
-//         // common suffix
-//         for (
-//           end = len - 1, newEnd = newLen - 1;
-//           end >= start && newEnd >= start && items[end] === newItems[newEnd];
-//           end--, newEnd--
-//         ) {
-//           temp[newEnd] = mapped[end];
-//           tempdisposers[newEnd] = disposers[end];
-//           indexes && (tempIndexes![newEnd] = indexes[end]);
-//         }
-
-//         // 0) prepare a map of all indices in newItems, scanning backwards so we encounter them in natural order
-//         newIndices = new Map<T, number>();
-//         newIndicesNext = new Array(newEnd + 1);
-//         for (j = newEnd; j >= start; j--) {
-//           item = newItems[j];
-//           i = newIndices.get(item)!;
-//           newIndicesNext[j] = i === undefined ? -1 : i;
-//           newIndices.set(item, j);
-//         }
-//         // 1) step through all old items and see if they can be found in the new set; if so, save them in a temp array and mark them moved; if not, exit them
-//         for (i = start; i <= end; i++) {
-//           item = items[i];
-//           j = newIndices.get(item)!;
-//           if (j !== undefined && j !== -1) {
-//             temp[j] = mapped[i];
-//             tempdisposers[j] = disposers[i];
-//             indexes && (tempIndexes![j] = indexes[i]);
-//             j = newIndicesNext[j];
-//             newIndices.set(item, j);
-//           } else disposers[i]();
-//         }
-//         // 2) set all the new values, pulling from the temp array if copied, otherwise entering the new value
-//         for (j = start; j < newLen; j++) {
-//           if (j in temp) {
-//             mapped[j] = temp[j];
-//             disposers[j] = tempdisposers[j];
-//             if (indexes) {
-//               indexes[j] = tempIndexes![j];
-//               indexes[j](j);
-//             }
-//           } else mapped[j] = createRoot(mapper);
-//         }
-//         // 3) in case the new set is shorter than the old, set the length of the mapped array
-//         mapped = mapped.slice(0, (len = newLen));
-//         // 4) save a copy of the mapped items for the next update
-//         items = newItems.slice(0);
+//         return s()[k]
 //       }
-//       return mapped;
-//     });
-//     function mapper(disposer: () => void) {
-//       disposers[j] = disposer;
-//       if (indexes) {
-//         const [s, set] = "_SOLID_DEV_" ? createSignal(j, { name: "index" }) : createSignal(j);
-//         indexes[j] = set;
-//         return mapFn(newItems[j], s);
-//       }
-//       return (mapFn as any)(newItems[j]);
 //     }
-//   };
+//   } else {
+//     return (...args) => {
+//       if (args.length) {
+//         return s(old=>old.toSpliced(k,1,args[0]))
+//       } else {
+//         return s()[k]
+//       }
+//     }
+//   }
 // }
-
-// export function For<T extends readonly any[], U extends JSX.Element>(props: {
-//   each: T | undefined | null | false;
-//   fallback?: JSX.Element;
-//   children: (item: T[number], index: Accessor<number>) => U;
-// }) {
-//   const fallback = "fallback" in props && { fallback: () => props.fallback };
-//   return createMemo(
-//         mapArray(() => props.each, props.children, fallback || undefined)
-//       ) as unknown as JSX.Element;
+//
+// function disposeList(list) {
+//   for (let i = 0; i < list.length; i++) {
+//     list[i]?.disposer()
+//   }
 // }
+//
+// // Copyright (c) 2021 Solid Primitives Working Group
+// export function listArray(list, mapFn, options = {}) {
+//   const items = [];
+//   let mapped = [],
+//     unusedItems, i, j, item,
+//     oldValue, oldIndex,
+//     newValue, fallback,
+//     fallbackDisposer;
+//
+//   return () => {
+//     const newItems = list() || [];
+//     (newItems)[$TRACK]; // top level tracking
+//     return sample(() => {
+//       if (newItems.length > 0 && fallbackDisposer) {
+//         fallbackDisposer();
+//         fallbackDisposer = undefined;
+//         fallback = undefined;
+//       }
+//
+//       const temp = new Array(newItems.length); // new mapped array
+//       unusedItems = items.length;
+//
+//       // 1) no change when values & indexes match
+//       for (j = unusedItems - 1; j >= 0; --j) {
+//         item = items[j];
+//         oldIndex = item.index;
+//         if (oldIndex < newItems.length && newItems[oldIndex] === item.value) {
+//           temp[oldIndex] = mapped[oldIndex];
+//           if (--unusedItems !== j) {
+//             items[j] = items[unusedItems];
+//             items[unusedItems] = item;
+//           }
+//         }
+//       }
+//
+//       // #2 prepare values matcher
+//       const matcher = new Map();
+//       const matchedItems = new Uint8Array(unusedItems);
+//       for (j = unusedItems - 1; j >= 0; --j) {
+//         oldValue = items[j].value;
+//         matcher.get(oldValue)?.push(j) ?? matcher.set(oldValue, [j]);
+//       }
+//
+//       // 2) change indexes when values match
+//       for (i = 0; i < newItems.length; ++i) {
+//         if (i in temp) continue;
+//         newValue = newItems[i];
+//         j = matcher.get(newValue)?.pop() ?? -1;
+//         if (j >= 0) {
+//           item = items[j];
+//           oldIndex = item.index;
+//           temp[i] = mapped[oldIndex];
+//           item.index = i;
+//           item.indexSetter?.(i);
+//           matchedItems[j] = 1;
+//         }
+//       }
+//
+//       // #2 reduce unusedItems for matched items
+//       for (j = matchedItems.length - 1; j >= 0; --j) {
+//         if (matchedItems[j] && --unusedItems !== j) {
+//           item = items[j];
+//           items[j] = items[unusedItems];
+//           items[unusedItems] = item;
+//         }
+//       }
+//
+//       // 3) change values when indexes match
+//       for (j = unusedItems - 1; j >= 0; --j) {
+//         item = items[j];
+//         oldIndex = item.index;
+//         if (!(oldIndex in temp) && oldIndex < newItems.length) {
+//           temp[oldIndex] = mapped[oldIndex];
+//           newValue = newItems[oldIndex];
+//           item.value = newValue;
+//           item.valueSetter?.(newValueGetter);
+//           if (--unusedItems !== j) {
+//             items[j] = items[unusedItems];
+//             items[unusedItems] = item;
+//           }
+//         }
+//       }
+//
+//       // 4) change value & index when none matched
+//       // 5) create new if no unused items left
+//       for (i = 0; i < newItems.length; ++i) {
+//         if (i in temp) continue;
+//         newValue = newItems[i];
+//         if (unusedItems > 0) {
+//           item = items[--unusedItems];
+//           temp[i] = mapped[item.index];
+//           batch(changeBoth);
+//         } else {
+//           temp[i] = createRoot(mapper);
+//         }
+//       }
+//
+//       // 6) delete any old unused items left
+//       disposeList(items.splice(0, unusedItems));
+//
+//       if (newItems.length === 0 && options.fallback) {
+//         if (!fallbackDisposer) {
+//           fallback = [
+//             createRoot(d => {
+//               fallbackDisposer = d;
+//               return options.fallback();
+//             }),
+//           ];
+//         }
+//         return fallback;
+//       }
+//       return (mapped = temp);
+//     })
+//   }
+//   function newValueGetter() { return newValue }
+//   function changeBoth() {
+//     item.index = i;
+//     item.indexSetter?.(i);
+//     item.value = newValue;
+//     item.valueSetter?.(newValueGetter);
+//   }
+//   function mapper(disposer) {
+//     const t = {value: newValue, index: i, disposer},
+//       scopedV = newValue,
+//       scopedI = i;
+//     items.push(t);
+//     // signal created when used
+//     let sV = () => {
+//       sV = signal(scopedV)
+//       return sV()
+//     }
+//     let sI = () => {
+//       sI = signal(scopedI);
+//       t.indexSetter = sI
+//       return sI()
+//     }
+//
+//     return mapFn(() => sV(), () => sI())
+//   }
+// }
+//
+// function createRoot(fn) { return fn() }
