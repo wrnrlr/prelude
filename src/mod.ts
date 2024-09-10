@@ -1,6 +1,6 @@
 export {signal,effect,sample,batch,memo,onMount} from './signal.ts'
 export {nbsp} from './constants.ts'
-export {Show} from './flow.js'
+export {Show,List} from './flow.js'
 
 import {runtime} from './runtime.ts'
 import {hyperscript} from './hyperscript.ts'

@@ -65,8 +65,8 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
         if (children) (props as Props).children = children
         for (const k in d) {
           if (isArray(d[k].value)) {
-            const list:any = (d[k] as any).value
-              (props as any)[k] = () => {
+            const list:any = (d[k] as any).value;
+            (props as any)[k] = () => {
               for (let i = 0; i < list.length; i++) while (list[i][$ELEMENT]) list[i] = list[i]()
               return list
             }

@@ -1,4 +1,4 @@
-import {effect,sample} from './signal.ts'
+import {effect,sample,root,type RootFunction} from './signal.ts'
 import reconcileArrays from './reconcile.js'
 import {SVGNamespace,SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
 import type {Window,Mountable,Element,Node} from './constants.ts'
@@ -21,10 +21,12 @@ export function runtime(window:Window):Runtime {
     element = (name:string) => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
     text = (s:string) => document.createTextNode(s)
 
-  function render(code:()=>void, element:Element, init:any) {
+  function render(code:()=>void, element:Element, init?:any) {
     if (!element) throw new Error("The `element` passed to `render(..., element)` doesn't exist.");
-    if (element === document) code()
-    else insert(element, code(), element.firstChild ? null : undefined, init)
+    root(() => {
+      if (element === document) code()
+      else insert(element, code(), element.firstChild ? null : undefined, init)
+    })
   }
 
   function insert(parent:Mountable, accessor:any, marker?:Node|null, initial?:any) {
