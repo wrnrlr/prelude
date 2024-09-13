@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<title>Counter</title>
+
+<script type="module">
+
+import {h,signal,effect,render} from '../src/mod.ts'
+
+function Input(props) {
+  const onInput = e => props.value(parseInt(e.target.value))
+  return h('input',{type:'number',value:props.value,onInput})
+}
+
+render(()=>{
+  const count = signal(1)
+  return [
+    h('button',{onClick(e){count(i=>i-1)}},'-'),
+    h(Input,{value:()=>count}),
+    h('button',{onClick(e){count(i=>i+1)}},'+')
+  ]
+},document.body)
+
+</script>

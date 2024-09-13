@@ -36,7 +36,11 @@ const Fragment:Component<Props> = <T extends Props>(props:T):Mountable => (props
 export function hyperscript(r:Runtime, patch?:any):HyperScript {
   const window = r.window
 
-  function item<T extends Props>(element:Element|Element[]|Component<T>|Component<T>[], children:Child, multiExpression?:Node|null) {
+  function item<T extends Props>(
+    element:Element|Element[]|Component<T>|Component<T>[],
+    children:Child,
+    multiExpression?:Node|null
+  ) {
     if (children===null) return
     if (isArray(children)) for (const child of children) item(element, child, multiExpression)
     else if ((children as unknown) instanceof (window as any).Element) r.insert(element, children, multiExpression)
@@ -47,12 +51,19 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
     } else (element as Element).appendChild(r.text(children.toString()))
   }
 
-  return function h<T extends Props>(element:Component<T>|Tag, props?:T|string|any[], children?:Child): View {
+  return function h<T extends Props>(
+    element:Component<T>|Tag,
+    props?:T|string|any[],
+    children?:Child
+  ): View {
     if ((element as Component<T>)[$ELEMENT]) {console.warn('-> fragment',element,props,children)}
-    if (isArray(props) || typeof props==='string') {
+
+    if (isArray(props) || typeof props==='string' || props?.call) {
+      console.log(element,'props1',props)
       children = (props as string|any[]) || []
       props = {} as T
     } else {
+      console.log(element,'props2',props)
       children = children || []
       props = (props as T) ?? {}
     }
@@ -62,12 +73,16 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
     if ((element as Component<T>).call) {
       ret = () => {
         const d = Object.getOwnPropertyDescriptors(props)
-        if (children) (props as Props).children = children
+        if (children) {
+          // console.log(props);
+          (props as Props).children = children
+        }
         for (const k in d) {
           if (isArray(d[k].value)) {
             const list:any = (d[k] as any).value;
             (props as any)[k] = () => {
-              for (let i = 0; i < list.length; i++) while (list[i][$ELEMENT]) list[i] = list[i]()
+              for (let i = 0; i < list.length; i++)
+                while (list[i][$ELEMENT]) list[i] = list[i]()
               return list
             }
             dynamicProperty(props as any, k)
@@ -75,7 +90,7 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
             dynamicProperty(props as any, k)
           }
         }
-        return sample(()=>(element as any)(props))
+        return sample(()=>(element as Component<T>)(props))
       }
     } else {
       ret = () => {
@@ -109,6 +124,8 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
 }
 
 function detectMultiExpression(list:any):boolean {
+  if (list.call) return true
+  else if (!isArray(list)) return false
   for (const i of list) {
     if (i.call) return (console.log('multi'),true)
     else if (isArray(i)) return detectMultiExpression(i)
