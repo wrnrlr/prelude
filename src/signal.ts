@@ -1,11 +1,32 @@
-type Callback<T = void> = () => T
+
+export interface EffectOptions {
+  name?: string;
+}
+
+export interface MemoOptions<T> extends EffectOptions {
+  equals?: false | ((prev: T, next: T) => boolean);
+}
+
+export type EffectFunction<Prev, Next extends Prev = Prev> = (v: Prev) => Next;
+
+export type Callback<T = void> = () => T
 export type EqualsFunction<T> = (value: T, valueNext: T) => boolean
 export type ErrorFunction = (error: unknown) => void
 export type RootFunction<T> = (dispose: () => void) => T
 export type UpdateFunction<T> = (value: T) => T
 
-export type Getter<T> = { (): T }
+/**
+Get value of type `T`
+@see {@link Setter} {@link signal} {@link memo}
+*/
+export type Getter<T> = {
+  (): T
+}
 
+/**
+Set value of type `T`
+@see {@link Getter} {@link signal}
+*/
 export type Setter<T> = {
   (update: UpdateFunction<T>): T,
   (value: T): T
@@ -18,12 +39,30 @@ export type Context<T> = {
   set(value: T): void
 }
 
-export type Options<T> = { equals?: false | EqualsFunction<T> }
+export type Options<T> = {
+  equals?: false | EqualsFunction<T>
+}
+
+export const $TRACK = Symbol("track")
 
 let BATCH: Map<Signal<any>, any> | undefined
 let OBSERVER: Observer | undefined
 let TRACKING = false
 const SYMBOL_ERRORS = Symbol()
+
+// interface Node<T> {
+//   parent: Node<T> | undefined
+//   get():T
+//   set(value:T):T
+// }
+// Root node
+// class RNode extends Node {}
+//
+// // Computed value node
+// class CNode {}
+//
+// // Value node
+// class VNode {}
 
 class Signal<T = unknown> {
   public parent: Computation<T> | undefined
@@ -73,7 +112,7 @@ abstract class Observer {
   public observers: Set<Observer> = new Set()
   public signals: Set<Signal> = new Set()
 
-  dispose(): void {
+  protected dispose(): void {
     for (const observer of this.observers)
       observer.dispose()
 
@@ -105,8 +144,7 @@ abstract class Observer {
 
 class Root extends Observer {
   wrap<T>(fn: RootFunction<T>): T {
-    const fnWithDispose = () => fn(this.dispose)
-    return wrap(fnWithDispose, this, false)!
+    return wrap(() => fn(this.dispose), this, false)!
   }
 }
 
@@ -148,26 +186,25 @@ class Computation<T = unknown> extends Observer {
       this.signal.stale(-1, false)
     }
   }
-
 }
 
 /**
- * Create a {@link Signal} of type `T` with initial `value`
- * @param value Initial value
- * @param options Signal options
- * @example Create new Signal
- * ```js
- * const n = signal(1)
- * ```
- * @example  Get current value
- * ```js
- * n()
- * ```
- * @example  Set value
- * ```js
- * n(3)
- ```
- * @group Reactive Primitive
+Create a {@link Signal} of type `T` with initial `value`
+@param value Initial value
+@param options Signal options
+@example Create new Signal
+```js
+const n = signal(1)
+```
+@example  Get current value
+```js
+n()
+```
+@example  Set value
+```js
+n(3)
+```
+@group Reactive Primitive
  */
 export function signal<T>(value:T, options?:Options<T>): Getter<T> & Setter<T> {
   const s = new Signal<T>(value,options)
@@ -176,23 +213,56 @@ export function signal<T>(value:T, options?:Options<T>): Getter<T> & Setter<T> {
 }
 
 /**
- * @group Reactive Primitive
- */
+@group Reactive Primitive
+*/
 export function effect(fn: Callback): void {
   new Computation(fn)
 }
 
-export function memo<T>(fn: Callback<T>, options?: Options<T>): Getter<T> {
+/**
+Memo creates a readonly reactive value equal to the return value of the given function
+and makes sure that function only gets executed when its dependencies change
+
+```js
+const a = signal(1), b = signal(2)
+const sum = memo((prev) => a()*b() + prev, 0)
+sum()
+```
+
+The memo function should not update other signals.
+
+@param fn
+@param options
+@group Reactive Primitive
+*/
+// export function memo<T extends K, K = T>(
+//   fn: EffectFunction<undefined | NoInfer<K>, T>
+// ): Getter<T>;
+// export function memo<T extends K, Init = T, K = T>(
+//   fn: EffectFunction<Init | K, T>,
+//   value: Init,
+//   options?: MemoOptions<T>
+// ): Getter<T>;
+export function memo<T extends K, Init = T, K = T>(
+  fn: Callback<T>,
+  value?: Init,
+  options?: Options<T>
+): Getter<T> {
   return new Computation(fn, options).signal.get
 }
 
+/**
+
+@param fn
+@group Reactive Primitive
+*/
 export function root<T>(fn: RootFunction<T>): T {
   return new Root().wrap(fn)
 }
 
-export function createContext<T>(): Context<T | undefined>;
-export function createContext<T>(defaultValue: T): Context<T>;
-export function createContext<T>(defaultValue?: T) {
+export function context<T>(): Context<T | undefined>;
+export function context<T>(defaultValue: T): Context<T>;
+export function context<T>(defaultValue?: T) {
   const id = Symbol ()
   const get = (): T | undefined => OBSERVER?.get ( id ) ?? defaultValue
   const set = ( value: T ): void => OBSERVER?.set ( id, value )
@@ -235,7 +305,7 @@ export function onError(fn: ErrorFunction):void {
  * @group Reactive Primitive
  */
 export function batch<T>(fn: Callback<T>):T {
-  if ( BATCH ) return fn ()
+  if (BATCH) return fn ()
   const batch = BATCH = new Map<Signal, any> ();
   try {
     return fn()
@@ -250,6 +320,10 @@ export function batch<T>(fn: Callback<T>):T {
   }
 }
 
+/**
+
+ @param fn
+*/
 export function sample<T>(fn: Callback<T>):T {
   return wrap(fn, OBSERVER, false)!
 }
