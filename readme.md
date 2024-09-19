@@ -1,6 +1,21 @@
 # PreludeJS
 
-[ESM]() [Api]() [Examples]()
+## Get Started
+
+Run directly in the browser using ESM
+   ```js
+  import {h, signal, render} from 'https://esm.sh/@wrnrlr/prelude'
+  ```
+
+Install from NPM to run with Node or Bun
+   ```js
+  import {h, signal, render} from 'wrnrlr/prelude'
+  ```
+
+Use Deno's JSR
+   ```js
+  import {h, signal, render} from 'jsr:wrnrlr/prelude'
+  ```
 
 A simple js frontend library
 
@@ -12,7 +27,7 @@ function Counter() {
   return [n,h('button',{onclick(e){n(n=>n+1)}},'+')]
 }
 
-render(Counter)
+render(Counter, document.body)
 ```
 
 ## Signals
@@ -20,13 +35,15 @@ render(Counter)
 ```js
 const a = signal(1)
 const b = signal(2)
-effect(()=>console.log('a+b',a()+b()))
-const c = computable(()=>a()+b())
-effect(()=>console.log('c',c()))
-a(i=>i+1)
+effect(() => console.log('a+b', a()+b()))
+const c = () => a()+b()
+effect(() => console.log('c', c()))
+a(i => i+1)
 ```
 
 ## Hyperscript
+
+The `h` function allows one to write html in javascript with a DSL specifically designed
 
 ```js
 h('div',{},[
@@ -36,58 +53,34 @@ h('div',{},[
 
 ## Event Handler
 
-A event handler MUST have an argument even if this is not used, this is to prevent hyperscript from confusing it with a signal.
+An event handler MUST have an argument even if this is not being used,
+otherwise hyperscript will confuse it for a signal.
 
 ```js
-function Button(props) {
-  const onClick = e => props.value(i=>i+1)
-  return h('button',{onClick},props.value)
-}
+// Ok
+h('button', {onClick: e => console.log('Ok')}, 'Hi')
+h('button', {onClick: _ => console.log('Ok')}, 'Hi')
+// This event handler will be ignored
+h('button', {onClick: () => console.log('Wrong')}, '')
 ```
 
-## Get Started
+## Conditional Rendering
 
 ```js
-// Deno JSR
-import {h,signal,render} from '@jsr:wrnrlr/prelude.js'
-
-// Browser
-import {h,signal,render} from 'https://esm.sh/@wrnrlr/prelude.js'
+h(Show, {when:show}, 'Hi')
 ```
 
-## TypeScript Support
+## Rendering Lists
 
-The PreludeJS API supports typescript
-
-```ts
-const n:Signal<number> = signal(0)
+```js
+h(List, {each:show}, 'Hi')
 ```
 
-## Api
+## Inversion of Control
+Prelude supports dependency injection with the `contect` and `useContext` APIs.
 
-* Reactive primitives
-  * `signal`
-  * `effect`
-  * `sample`
-  * `computed`
-  * `batch`
-* Buildin Components
-  * For
-  * Show
-  * ErrorBoundry
-  * Suspend
-  * Dialog
-  * List
-  * Table
+## Advanced DataTable
 
-## Status
-  - [ ] Implement `For` component
-  - [ ] Typescript support for `h()`
-  - [ ] Tailwind like styling
-  - [ ] Make computed signals implicit like in SolidJS
-
-## Awesome Links
-
-* [Patterns for Memory Efficient DOM Manipulation with Modern Vanilla JavaScript](https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/)
-* [Two-way Binding is a Two-way Street](https://dev.to/this-is-learning/two-way-binding-is-a-two-way-street-2d3c)
-* [React performance](https://blog.vjeux.com/2013/javascript/react-performance.html)
+```js
+h(Table)
+```
