@@ -1,11 +1,12 @@
-export type {Getter,Setter,Callback} from './signal.ts'
+export type {Getter,Setter,Fn,EqualsFn,ErrorFn,RootFn,UpdateFn} from './signal.ts'
 export {signal,effect,sample,batch,memo,root,onMount} from './signal.ts'
 export {nbsp} from './constants.ts'
 export {wrap,Show,List2,List} from './flow.js'
 export type {Runtime} from './runtime.ts'
 import {runtime} from './runtime.ts'
-export type {HyperScript,Child,Props} from './hyperscript.ts'
+export type {HyperScript,Child,Props,Tag,View,Component} from './hyperscript.ts'
 import {hyperscript} from './hyperscript.ts'
+export { Input, Table, Canvas } from './components.js'
 
 const r = runtime(window as any)
 
@@ -22,7 +23,7 @@ h('p',['Hello ',h('em','World!')])
 ```js
 h(Input,{onInput:e => {}})
 ```
-@group
+@group Hyperscript
 */
 const h = hyperscript(r)
 
