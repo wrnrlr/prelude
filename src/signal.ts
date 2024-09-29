@@ -9,11 +9,12 @@ export interface MemoOptions<T> extends EffectOptions {
 
 export type EffectFunction<Prev, Next extends Prev = Prev> = (v: Prev) => Next;
 
-export type Callback<T = void> = () => T
-export type EqualsFunction<T> = (value: T, valueNext: T) => boolean
-export type ErrorFunction = (error: unknown) => void
-export type RootFunction<T> = (dispose: () => void) => T
-export type UpdateFunction<T> = (value: T) => T
+/** @internal */
+export type Fn<T = void> = () => T
+export type EqualsFn<T> = (value: T, valueNext: T) => boolean
+export type ErrorFn = (error: unknown) => void
+export type RootFn<T> = (dispose: () => void) => T
+export type UpdateFn<T> = (value: T) => T
 
 /**
 Get value of type `T`
@@ -28,7 +29,7 @@ Set value of type `T`
 @see {@link Getter} {@link signal}
 */
 export type Setter<T> = {
-  (update: UpdateFunction<T>): T,
+  (update: UpdateFn<T>): T,
   (value: T): T
 }
 
@@ -40,7 +41,7 @@ export type Context<T> = {
 }
 
 export type Options<T> = {
-  equals?: false | EqualsFunction<T>
+  equals?: false | EqualsFn<T>
 }
 
 export const $TRACK = Symbol("track")
@@ -67,7 +68,7 @@ const SYMBOL_ERRORS = Symbol()
 class Signal<T = unknown> {
   public parent: Computation<T> | undefined
   public value: T
-  private readonly equals: EqualsFunction<T>
+  private readonly equals: EqualsFn<T>
   public readonly observers: Set<Computation> = new Set ()
 
   constructor(value: T, {equals}: Options<T> = {}) {
@@ -85,7 +86,7 @@ class Signal<T = unknown> {
     return this.value
   }
 
-  set = (value: UpdateFunction<T> | T): T => {
+  set = (value: UpdateFn<T> | T): T => {
     const valueNext = (value instanceof Function) ? value(this.value) : value
     if (!this.equals(this.value, valueNext )) {
       if (BATCH) {
@@ -107,7 +108,7 @@ class Signal<T = unknown> {
 
 abstract class Observer {
   public parent: Observer | undefined = OBSERVER
-  public cleanups: Callback[] = []
+  public cleanups: Fn[] = []
   public contexts: Record<symbol, any> = {}
   public observers: Set<Observer> = new Set()
   public signals: Set<Signal> = new Set()
@@ -143,18 +144,18 @@ abstract class Observer {
 }
 
 class Root extends Observer {
-  wrap<T>(fn: RootFunction<T>): T {
+  wrap<T>(fn: RootFn<T>): T {
     return wrap(() => fn(this.dispose), this, false)!
   }
 }
 
 class Computation<T = unknown> extends Observer {
-  private readonly fn: Callback<T>
+  private readonly fn: Fn<T>
   private fresh: boolean = false
   public signal: Signal<T>
   public waiting: number = 0
 
-  constructor(fn: Callback<T>, options?: Options<T>) {
+  constructor(fn: Fn<T>, options?: Options<T>) {
     super()
     this.fn = fn
     this.signal = new Signal<T>(this.run(), options)
@@ -196,11 +197,11 @@ Create a {@link Signal} of type `T` with initial `value`
 ```js
 const n = signal(1)
 ```
-@example  Get current value
+@example Get current value
 ```js
 n()
 ```
-@example  Set value
+@example Set value
 ```js
 n(3)
 ```
@@ -215,7 +216,7 @@ export function signal<T>(value:T, options?:Options<T>): Getter<T> & Setter<T> {
 /**
 @group Reactive Primitive
 */
-export function effect(fn: Callback): void {
+export function effect(fn: Fn): void {
   new Computation(fn)
 }
 
@@ -244,7 +245,7 @@ The memo function should not update other signals.
 //   options?: MemoOptions<T>
 // ): Getter<T>;
 export function memo<T extends K, Init = T, K = T>(
-  fn: Callback<T>,
+  fn: Fn<T>,
   value?: Init,
   options?: Options<T>
 ): Getter<T> {
@@ -256,17 +257,22 @@ export function memo<T extends K, Init = T, K = T>(
 @param fn
 @group Reactive Primitive
 */
-export function root<T>(fn: RootFunction<T>): T {
+export function root<T>(fn: RootFn<T>): T {
   return new Root().wrap(fn)
 }
 
 export function context<T>(): Context<T | undefined>;
 export function context<T>(defaultValue: T): Context<T>;
 export function context<T>(defaultValue?: T) {
-  const id = Symbol ()
+  const id = Symbol()
   const get = (): T | undefined => OBSERVER?.get ( id ) ?? defaultValue
   const set = ( value: T ): void => OBSERVER?.set ( id, value )
-  return {id, defaultValue, get, set}
+  const s = {id, defaultValue, get, set}
+  const f = Object.assign((props:any) => {
+    set(props.value)
+    return () => props.children.call ? props.children() : props.children
+  }, s)
+  return f as unknown as Context<T>
 }
 
 export function useContext<T>(context: Context<T>): T {
@@ -290,11 +296,11 @@ export function onMount(fn: () => void) {
   effect(() => sample(fn));
 }
 
-export function onCleanup(fn: Callback):void {
+export function onCleanup(fn: Fn):void {
   OBSERVER?.cleanups.push(fn)
 }
 
-export function onError(fn: ErrorFunction):void {
+export function onError(fn: ErrorFn):void {
   if ( !OBSERVER ) return
   OBSERVER.contexts[SYMBOL_ERRORS] ||= []
   OBSERVER.contexts[SYMBOL_ERRORS].push (fn)
@@ -304,7 +310,7 @@ export function onError(fn: ErrorFunction):void {
  *
  * @group Reactive Primitive
  */
-export function batch<T>(fn: Callback<T>):T {
+export function batch<T>(fn: Fn<T>):T {
   if (BATCH) return fn ()
   const batch = BATCH = new Map<Signal, any> ();
   try {
@@ -322,13 +328,19 @@ export function batch<T>(fn: Callback<T>):T {
 
 /**
 
- @param fn
+@param fn
+@group Reactive Primitive
 */
-export function sample<T>(fn: Callback<T>):T {
+export function sample<T>(fn: Fn<T>):T {
   return wrap(fn, OBSERVER, false)!
 }
 
-function wrap<T>(fn: Callback<T>, observer: Observer | undefined, tracking: boolean ): T|undefined {
+/**
+
+ @param fn
+ @group Reactive Primitive
+ */
+function wrap<T>(fn: Fn<T>, observer: Observer | undefined, tracking: boolean ): T|undefined {
   const OBSERVER_PREV = OBSERVER;
   const TRACKING_PREV = TRACKING;
   OBSERVER = observer;
@@ -336,7 +348,7 @@ function wrap<T>(fn: Callback<T>, observer: Observer | undefined, tracking: bool
   try {
     return fn();
   } catch (error: unknown) {
-    const fns = observer?.get<ErrorFunction[]>(SYMBOL_ERRORS)
+    const fns = observer?.get<ErrorFn[]>(SYMBOL_ERRORS)
     if (fns)
       for (const fn of fns) fn(error)
     else throw error
