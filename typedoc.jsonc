@@ -1,5 +1,7 @@
 {
-  "name": "PreludeJS",
+  "name": "prelude",
+  "hostedBaseUrl": "https://wrnrlr.github.io/prelude",
+  "useHostedBaseUrlForAbsoluteLinks": false,
   "compilerOptions": {
     "strict": true,
     "allowJs": true,
@@ -9,5 +11,20 @@
     "lib": [],
     "target": ["esnext"],
     "downlevelIteration": true
-  }
+  },
+  "entryPoints": ["./src/mod.ts"],
+  "navigation": {
+      "includeCategories": true,
+      "includeGroups": false,
+      "includeFolders": true
+  },
+  "visibilityFilters": {
+      "protected": false,
+      "private": false,
+      "inherited": true,
+      "external": false,
+      "@alpha": false,
+      "@beta": false
+  },
+  "categorizeByGroup": true
 }
