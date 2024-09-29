@@ -6,7 +6,8 @@ export type {Runtime} from './runtime.ts'
 import {runtime} from './runtime.ts'
 export type {HyperScript,Child,Props,Tag,View,Component} from './hyperscript.ts'
 import {hyperscript} from './hyperscript.ts'
-export { Input, Table, Canvas } from './components.js'
+export {Input,Table} from './components.js'
+export * from './canvas.js'
 
 const r = runtime(window as any)
 
