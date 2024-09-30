@@ -16,6 +16,49 @@ export function Show(props) {
   })
 }
 
+export function wrap2(s,k) {
+  const t = typeof k
+  if (t === 'number') return (...a) => a.length ? (console.log('wrap nr',s(b => b.toSpliced(k, 1, a[0]))),s(b => b.toSpliced(k, 1, a[0]))) : s()[k]
+  else if (t === 'string') return (...a) => (a.length) ? (console.log('wrap str',{...s(),[k]:a[0]}),s(b=>({...b, [k]:a[0]}))) : s()[k]
+  else if (t === 'function') return (...a) => {
+    const i = k(), c = typeof i
+    console.log('wrap f',c,i,a)
+    if (c==='number') return a.length ? s(old => old.toSpliced(i, 1, a[0])) : s()[i]
+    else if (t === 'string') return a => a.length ? s(b=>({...b, [i]:a[0]})) : s()[i]
+    throw new Error('Cannot wrap signal')
+  }
+  throw new Error('Cannot wrap signal')
+}
+
+export function wrap(s,k) {
+  const t = typeof k
+  if (t === 'number') return (...a) => a.length ? s(b => b.toSpliced(k, 1, a[0]))[k] : s()[k]
+  else if (t === 'string') return (...a) => (a.length) ? s(b=>({...b, [k]:a[0]}))[k] : s()[k]
+  else if (t === 'function') return (...a) => {
+    const i = k(), c = typeof i
+    if (c==='number') return a.length ? s(old => old.toSpliced(i, 1, a[0])) : s()[i]
+    else if (t === 'string') return a => a.length ? s(b=>({...b, [i]:a[0]})) : s()[i]
+    throw new Error('Cannot wrap signal')
+  }
+  throw new Error('Cannot wrap signal')
+}
+
+export function List2(props) {
+  const fallback = "fallback" in props && { fallback: () => props.fallback }
+  const list = props.each.call ? props.each : ()=>props.each
+  const cb = props.children.call ? props.children : (v)=>v
+  return memo(() => {
+    const items = list()
+    console.log('items',items)
+    const res = items.map((v,i)=> {
+      const index = signal(i), value = wrap(list, i)
+      return cb(value,index)
+    })
+    console.log('res',res.map(r=>r()()))
+    return () => res
+  })
+}
+
 /**
 List
 @group Components
@@ -23,33 +66,6 @@ List
 export function List(props) {
   const fallback = "fallback" in props && { fallback: () => props.fallback }
   return memo(listArray(() => props.each, props.children, fallback || undefined))
-}
-
-export function wrap(s,k) {
-  if (typeof k === 'string') {
-    return (...args) => {
-      if (args.length) {
-        return s({...s(),[k]:args[0]})
-      } else {
-        return s()[k]
-      }
-    }
-  } else {
-    return (...args) => {
-      if (args.length) {
-        let old = s()
-        return s(old=>old.toSpliced(k,1,args[0]))
-      } else {
-        return s()[k]
-      }
-    }
-  }
-}
-
-function disposeList(list) {
-  for (let i = 0; i < list.length; i++) {
-    list[i]?.disposer()
-  }
 }
 
 export function listArray(list, mapFn, options = {}) {
@@ -60,11 +76,13 @@ export function listArray(list, mapFn, options = {}) {
     newValue, fallback,
     fallbackDisposer
 
-  return () => {
+  const ret = () => {
     const newItems = list() || []
     console.log('newItems',newItems);
     (newItems)[$TRACK] // top level tracking
+
     return sample(() => {
+      console.log('sample newItems')
       if (newItems.length > 0 && fallbackDisposer) {
         fallbackDisposer()
         fallbackDisposer = undefined
@@ -166,29 +184,44 @@ export function listArray(list, mapFn, options = {}) {
       return (mapped = temp);
     })
   }
+
   function newValueGetter() { return newValue }
+
   function changeBoth() {
     item.index = i
     item.indexSetter?.(i)
     item.value = newValue
     item.valueSetter?.(newValueGetter)
   }
+
   function mapper(disposer) {
     const t = {value: newValue, index: i, disposer},
       scopedV = newValue,
       scopedI = i;
     items.push(t)
     // signal created when used
-    let sV = () => {
-      sV = signal(scopedV)
-      return sV()
-    }
+    // let sV = (v) => {
+    //   sW = wrap(list,scopedI)
+    //   console.log('yo',sW())
+    //   t.valueSetter = sW
+    //   return sV
+    // }
     let sI = () => {
-      sI = signal(scopedI)
+      sI = scopedI
       t.indexSetter = sI
-      return sI()
+      return sI
     }
+    let sW = wrap(list,sI)
+    t.valueSetter = sW
 
-    return mapFn(() => sV(), () => sI())
+    return mapFn(sW, ()=>sI())
+  }
+
+  return ret
+}
+
+function disposeList(list) {
+  for (let i = 0; i < list.length; i++) {
+    list[i]?.disposer()
   }
 }
