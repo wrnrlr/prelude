@@ -1,9 +1,10 @@
 import {assertEquals,assert} from '@std/assert'
 import {describe,it} from '@std/testing/bdd'
 
-import {signal,effect,sample,batch} from '../src/signal2.ts'
+import {signal,effect,sample,batch,memo,context} from '../src/signal.ts'
+import {wrap} from '../src/flow.js'
 
-describe('signal',()=>{
+describe('signal', () => {
   const a = signal(1)
   assertEquals(a(),1)
   assertEquals(a(a()+1),2)
@@ -13,7 +14,7 @@ describe('signal',()=>{
   assertEquals(a(null),null)
 })
 
-describe('effect',()=>{
+describe('effect', () => {
   const n = signal(1)
   let m = 0
   // effect(initial => m = n() + initial,1)
@@ -46,11 +47,34 @@ describe('computed',()=>{
   batch(()=>{a(v => v++); b(v=>v++)})
 })
 
-describe('batch',()=>{
+describe('batch', () => {
   const  a = signal(1), b = signal(1)
   let i = 0
   effect(()=>{a(); b(); i++})
   assertEquals(i,1)
-  batch(()=>{a(1); b(2)})
-  assertEquals(i,2)
+  a(2)
+  b(2)
+  assertEquals(i,3)
+  batch(()=>{a(1); b(1)})
+  it('batches changes', () => assertEquals(i,4))
+})
+
+describe('memo',{skip:true},() => {
+  describe('memo with initial value',() => {})
+})
+
+describe('wrap',()=>{
+  describe('signal with numeric index', () => {
+    const all = signal(['a','b']), first = wrap(all,0)
+    assertEquals(first(),'a')
+    assertEquals(first('A'),'A')
+    assertEquals(first(),'A')
+  })
+
+  describe('signal with string index', () => {
+    const all = signal({name:'a'}), name = wrap(all,'name')
+    assertEquals(name(),'a')
+    assertEquals(name('A'),'A')
+    assertEquals(name(),'A')
+  })
 })
