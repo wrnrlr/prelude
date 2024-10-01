@@ -64,17 +64,35 @@ describe('memo',{skip:true},() => {
 })
 
 describe('wrap',()=>{
-  describe('signal with numeric index', () => {
+  describe('wrap singal of array', () => {
     const all = signal(['a','b']), first = wrap(all,0)
     assertEquals(first(),'a')
     assertEquals(first('A'),'A')
     assertEquals(first(),'A')
   })
 
-  describe('signal with string index', () => {
+  describe('wrap singal of object', () => {
     const all = signal({name:'a'}), name = wrap(all,'name')
     assertEquals(name(),'a')
     assertEquals(name('A'),'A')
     assertEquals(name(),'A')
+  })
+
+  describe('wrap singal of array of objects', () => {
+    const all = signal([{name:'a'}]), first = wrap(all,0), name = wrap(first,'name')
+    assertEquals(first({name:'b'}),{name:'b'})
+    assertEquals(first(),{name:'b'})
+    assertEquals(name(),'b')
+    assertEquals(name('A'),'A')
+    assertEquals(name(),'A')
+  })
+
+  describe('wrap singal of object of arrays', () => {
+    const all = signal({ids:[0,1,2]}), ids = wrap(all,'id'), last = wrap(ids,-1)
+    assertEquals(ids([1,2,3]),[1,2,3])
+    assertEquals(ids(),[1,2,3])
+    assertEquals(last(),3)
+    assertEquals(last(4),4)
+    assertEquals(last(),4)
   })
 })
