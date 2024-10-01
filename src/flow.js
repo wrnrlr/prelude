@@ -16,30 +16,24 @@ export function Show(props) {
   })
 }
 
-export function wrap2(s,k) {
-  const t = typeof k
-  if (t === 'number') return (...a) => a.length ? (console.log('wrap nr',s(b => b.toSpliced(k, 1, a[0]))),s(b => b.toSpliced(k, 1, a[0]))) : s()[k]
-  else if (t === 'string') return (...a) => (a.length) ? (console.log('wrap str',{...s(),[k]:a[0]}),s(b=>({...b, [k]:a[0]}))) : s()[k]
-  else if (t === 'function') return (...a) => {
-    const i = k(), c = typeof i
-    console.log('wrap f',c,i,a)
-    if (c==='number') return a.length ? s(old => old.toSpliced(i, 1, a[0])) : s()[i]
-    else if (t === 'string') return a => a.length ? s(b=>({...b, [i]:a[0]})) : s()[i]
-    throw new Error('Cannot wrap signal')
-  }
-  throw new Error('Cannot wrap signal')
-}
+const log = (m,v=m) => (console.debug(m,v),v)
 
 export function wrap(s,k) {
   const t = typeof k
-  if (t === 'number') return (...a) => a.length ? s(b => b.toSpliced(k, 1, a[0]))[k] : s()[k]
-  else if (t === 'string') return (...a) => (a.length) ? s(b=>({...b, [k]:a[0]}))[k] : s()[k]
-  else if (t === 'function') return (...a) => {
-    const i = k(), c = typeof i
-    if (c==='number') return a.length ? s(old => old.toSpliced(i, 1, a[0])) : s()[i]
-    else if (t === 'string') return a => a.length ? s(b=>({...b, [i]:a[0]})) : s()[i]
-    throw new Error('Cannot wrap signal')
+  if (t === 'number') return (...a) => {
+    const b = s()
+    return (a.length) ? s(b.toSpliced(k, 1, a[0])).at(k) : b.at(k)
+  }; else if (t === 'string') return (...a) => {
+    const b = s()
+    return a.length ? s(({...b, [k]:a[0]}))[k] : b[k]
   }
+  // else if (t === 'function') return (...a) => {
+  //   const i = k(), c = typeof i
+  //   console.log({i})
+  //   if (c==='number') return a.length ? s(old => old.toSpliced(i, 1, a[0]))[i] : s()[i]
+  //   else if (c === 'string') return a => a.length ? s(b => ({...b, [i]:a[0]}))[i] : s()[i]
+  //   throw new Error('Cannot wrap signal')
+  // }
   throw new Error('Cannot wrap signal')
 }
 
@@ -171,6 +165,7 @@ export function listArray(list, mapFn, options = {}) {
       disposeList(items.splice(0, unusedItems))
 
       if (newItems.length === 0 && options.fallback) {
+        console.log('fallback')
         if (!fallbackDisposer) {
           fallback = [
             root(d => {
@@ -200,21 +195,18 @@ export function listArray(list, mapFn, options = {}) {
       scopedI = i;
     items.push(t)
     // signal created when used
-    // let sV = (v) => {
-    //   sW = wrap(list,scopedI)
-    //   console.log('yo',sW())
-    //   t.valueSetter = sW
-    //   return sV
-    // }
-    let sI = () => {
-      sI = scopedI
-      t.indexSetter = sI
-      return sI
+    let sV = () => {
+      sV = signal(scopedV)
+      t.valueSetter = sV
+      return sV()
     }
-    let sW = wrap(list,sI)
-    t.valueSetter = sW
+    let sI = () => {
+      sI = signal(scopedI)
+      t.indexSetter = sI
+      return sI()
+    }
 
-    return mapFn(sW, ()=>sI())
+    return mapFn(()=>sV(), ()=>sI())
   }
 
   return ret
