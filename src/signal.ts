@@ -113,7 +113,7 @@ abstract class Observer {
   public observers: Set<Observer> = new Set()
   public signals: Set<Signal> = new Set()
 
-  protected dispose(): void {
+  protected dispose = ():void => {
     for (const observer of this.observers)
       observer.dispose()
 

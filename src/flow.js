@@ -25,32 +25,14 @@ export function wrap(s,k) {
     return (a.length) ? s(b.toSpliced(k, 1, a[0])).at(k) : b.at(k)
   }; else if (t === 'string') return (...a) => {
     const b = s()
-    return a.length ? s(({...b, [k]:a[0]}))[k] : b[k]
+    return a.length ? s(({ ...b, [k]: a[0] }))[k] : b[k]
+  }; else if (t === 'function') return (...a) => {
+    const i = k(), c = typeof i
+    if (c==='number') return a.length ? s(old => old.toSpliced(i, 1, a[0]))[i] : s()[i]
+    else if (c === 'string') return a => a.length ? s(b => ({...b, [i]:a[0]}))[i] : s()[i]
+    throw new Error('Cannot wrap signal')
   }
-  // else if (t === 'function') return (...a) => {
-  //   const i = k(), c = typeof i
-  //   console.log({i})
-  //   if (c==='number') return a.length ? s(old => old.toSpliced(i, 1, a[0]))[i] : s()[i]
-  //   else if (c === 'string') return a => a.length ? s(b => ({...b, [i]:a[0]}))[i] : s()[i]
-  //   throw new Error('Cannot wrap signal')
-  // }
   throw new Error('Cannot wrap signal')
-}
-
-export function List2(props) {
-  const fallback = "fallback" in props && { fallback: () => props.fallback }
-  const list = props.each.call ? props.each : ()=>props.each
-  const cb = props.children.call ? props.children : (v)=>v
-  return memo(() => {
-    const items = list()
-    console.log('items',items)
-    const res = items.map((v,i)=> {
-      const index = signal(i), value = wrap(list, i)
-      return cb(value,index)
-    })
-    console.log('res',res.map(r=>r()()))
-    return () => res
-  })
 }
 
 /**
@@ -59,30 +41,27 @@ List
 */
 export function List(props) {
   const fallback = "fallback" in props && { fallback: () => props.fallback }
-  return memo(listArray(() => props.each, props.children, fallback || undefined))
-}
-
-export function listArray(list, mapFn, options = {}) {
-  const items = []
-  let mapped = [],
-    unusedItems, i, j, item,
-    oldValue, oldIndex,
-    newValue, fallback,
-    fallbackDisposer
-
-  const ret = () => {
+  const list = props.each.call ? props.each : ()=>props.each
+  const cb = props.children.call ? props.children : (v)=>v
+  let items = [], item, unusedItems, i, j, newValue, mapped, oldIndex, oldValue
+  function newValueGetter() { return newValue }
+  function changeBoth() {
+    item.index = i
+    item.indexSetter?.(i)
+    item.value = newValue
+    item.valueSetter?.(newValueGetter)
+  }
+  function mapper(disposer) {
+    const scopedV = newValue, scopedI = i;
+    const indexSetter = signal(scopedI), valueSetter = signal(scopedV)
+    const t = {value: newValue, index: scopedI, disposer, indexSetter, valueSetter}
+    items.push(t)
+    return cb((...a)=>valueSetter(...a),(...a)=>indexSetter(...a))
+  }
+  return memo(() => {
     const newItems = list() || []
-    console.log('newItems',newItems);
-    (newItems)[$TRACK] // top level tracking
-
+    // (newItems)[$TRACK]; // top level tracking
     return sample(() => {
-      console.log('sample newItems')
-      if (newItems.length > 0 && fallbackDisposer) {
-        fallbackDisposer()
-        fallbackDisposer = undefined
-        fallback = undefined
-      }
-
       const temp = new Array(newItems.length) // new mapped array
       unusedItems = items.length
 
@@ -138,6 +117,7 @@ export function listArray(list, mapFn, options = {}) {
         if (!(oldIndex in temp) && oldIndex < newItems.length) {
           temp[oldIndex] = mapped[oldIndex]
           newValue = newItems[oldIndex]
+          console.log('set value')
           item.value = newValue
           item.valueSetter?.(newValueGetter)
           if (--unusedItems !== j) {
@@ -157,6 +137,7 @@ export function listArray(list, mapFn, options = {}) {
           temp[i] = mapped[item.index]
           batch(changeBoth);
         } else {
+          console.log('make value')
           temp[i] = root(mapper)
         }
       }
@@ -164,52 +145,9 @@ export function listArray(list, mapFn, options = {}) {
       // 6) delete any old unused items left
       disposeList(items.splice(0, unusedItems))
 
-      if (newItems.length === 0 && options.fallback) {
-        console.log('fallback')
-        if (!fallbackDisposer) {
-          fallback = [
-            root(d => {
-              fallbackDisposer = d
-              return options.fallback()
-            }),
-          ]
-        }
-        return fallback;
-      }
       return (mapped = temp);
     })
-  }
-
-  function newValueGetter() { return newValue }
-
-  function changeBoth() {
-    item.index = i
-    item.indexSetter?.(i)
-    item.value = newValue
-    item.valueSetter?.(newValueGetter)
-  }
-
-  function mapper(disposer) {
-    const t = {value: newValue, index: i, disposer},
-      scopedV = newValue,
-      scopedI = i;
-    items.push(t)
-    // signal created when used
-    let sV = () => {
-      sV = signal(scopedV)
-      t.valueSetter = sV
-      return sV()
-    }
-    let sI = () => {
-      sI = signal(scopedI)
-      t.indexSetter = sI
-      return sI()
-    }
-
-    return mapFn(()=>sV(), ()=>sI())
-  }
-
-  return ret
+  })
 }
 
 function disposeList(list) {
