@@ -166,18 +166,30 @@ function detectMultiExpression(list:any):boolean {
 }
 
 // ^([a-zA-Z]\w*)?(#[a-zA-Z][-\w]*)?(.[a-zA-Z][-\w]*)*
-function parseTag(tag:Tag):{name:string,id?:string,classes:string[]} {
+function parseTag(s:string):{name:string,id?:string,classes:string[]} {
   const classes:string[] = [];
-  let name, id
-  const m = tag.split(/([\.#]?[^\s#.]+)/)
-  if (/^\.|#/.test(m[1])) name = 'div'
-  for (const v of m) {
-    if (!v) continue
-    if (!name) name = v
-    else if (v[0] === ".") classes.push(v.slice(1))
-    else if (v[0] === "#") id = v.slice(1)
+  let name:string, id = undefined, i:number
+
+  i = s.indexOf('#')
+  if (i===-1) i = s.indexOf('.')
+  if (i===-1) i = s.length
+  name = s.slice(0, i) || 'div'
+  s = s.slice(i)
+
+  if (s[0]==='#') {
+    i = s.indexOf('.')
+    if (i===-1) i = s.length
+    id = s.slice(1, i)
+    s = s.slice(i)
   }
-  return {name:name as string,classes,id}
+
+  while(s[0]==='.') {
+    i = s.indexOf('.',1)
+    if (i===-1) i = s.length
+    classes.push(s.slice(1, i))
+    s = s.slice(i)
+  }
+  return {name:name as string,classes,id:id}
 }
 
 function dynamicProperty(props:Record<string,any>, key:string):Record<string,any> {
