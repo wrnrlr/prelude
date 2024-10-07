@@ -5,14 +5,14 @@
 export const nbsp:string = '\u00A0'
 
 export declare type Window = { document: Document;  SVGElement: typeof SVGElements}
-export declare type Element = any
+export declare type Elem = any
 declare type SVGElement = any
 declare type Document = any
 declare type ShadowRoot = any
 declare type DocumentFragment = any
 export declare type Node = any
 
-export type Mountable = Element | Document | ShadowRoot | DocumentFragment | Node;
+export type Mountable = Elem | Document | ShadowRoot | DocumentFragment | Node;
 type ExpandableNode = Node & { [key: string]: any };
 
 // type Expect<T extends true> = T;

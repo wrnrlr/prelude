@@ -65,7 +65,7 @@ const SYMBOL_ERRORS = Symbol()
 // // Value node
 // class VNode {}
 
-class Signal<T = unknown> {
+export class Signal<T = unknown> {
   public parent: Computation<T> | undefined
   public value: T
   private readonly equals: EqualsFn<T>
@@ -130,7 +130,7 @@ abstract class Observer {
     this.parent?.observers.delete(this)
   }
 
-  get<T>(id: symbol): T | undefined {
+  get = <T> (id: symbol): T | undefined => {
     if (id in this.contexts) {
       return this.contexts[id]
     } else {
@@ -138,7 +138,7 @@ abstract class Observer {
     }
   }
 
-  set<T>(id: symbol, value: T): void {
+  set = <T>(id: symbol, value: T): void => {
     this.contexts[id] = value
   }
 }
@@ -168,13 +168,13 @@ class Computation<T = unknown> extends Observer {
     return wrap(this.fn, this, true)!
   }
 
-  update(): void {
+  update = (): void => {
     this.waiting = 0
     this.fresh = false
     this.signal.set(this.run)
   }
 
-  stale(change: 1 | -1, fresh: boolean): void {
+  stale = (change: 1 | -1, fresh: boolean): void => {
     if (!this.waiting && change < 0) return
     if (!this.waiting && change > 0) this.signal.stale(1, false)
 

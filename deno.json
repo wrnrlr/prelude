@@ -4,7 +4,6 @@
   "exports": "./src/mod.ts",
   "compilerOptions": {
     "strict": true,
-    "allowJs": true,
     "checkJs": false,
     "noImplicitThis": false,
     "lib": ["dom","dom.iterable","dom.asynciterable","deno.ns"]
@@ -17,8 +16,7 @@
   },
   "tasks": {
     "dev": "deno run -A npm:vite@^5.4.2",
-    "test": "deno test -A --unstable-sloppy-imports ./src/test.js",
-    "docs": "deno run -A npm:typedoc ",
-    "publish": "deno run -A npm publish"
+    "test": "deno test -A --unstable-sloppy-imports ./test/*.[jt]s",
+    "docs": "deno run -A npm:typedoc "
   }
 }

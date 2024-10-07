@@ -1,27 +1,42 @@
-import {effect,sample,root,type RootFunction} from './signal.ts'
-import reconcileArrays from './reconcile.js'
+import {effect,sample,root} from './reactive.ts'
 import {SVGNamespace,SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
-import type {Window,Mountable,Element,Node} from './constants.ts'
+import type {Window,Mountable,Elem,Node} from './constants.ts'
 
 const {isArray} = Array
+export const $RUNTIME = Symbol()
 
+/**
+
+@group Internal
+*/
 export type Runtime = {
-  window:Window
-  render(code:()=>void, element:Element, init:any): any;
+  // window:Window
+  render(code:()=>void, element:Elem, init:any): any;
   insert(parent:Mountable, accessor:any, marker?:Node|null, init?:any): any;
-  spread(node:Element, accessor:any, skipChildren?: boolean): void;
-  assign(node:Element, props:any, skipChildren?:boolean): void;
+  spread(node:Elem, accessor:any, skipChildren?: boolean): void;
+  assign(node:Elem, props:any, skipChildren?:boolean): void;
   element(name:string): any;
   text(s:string): any;
+  isChild(a:any): boolean;
+  clearDelegatedEvents():void
 }
 
+/**
+
+@param window
+@group Internal
+*/
 export function runtime(window:Window):Runtime {
   const document = window.document,
     isSVG = (e:any) => e instanceof (window.SVGElement as any),
     element = (name:string) => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
     text = (s:string) => document.createTextNode(s)
 
-  function render(code:()=>void, element:Element, init?:any) {
+  function isChild(a:any):boolean {
+    return a instanceof document.Element
+  }
+
+  function render(code:()=>void, element:Elem, init?:any) {
     if (!element) throw new Error("The `element` passed to `render(..., element)` doesn't exist.");
     root(() => {
       if (element === document) code()
@@ -36,7 +51,7 @@ export function runtime(window:Window):Runtime {
     effect(() => {current = insertExpression(parent, accessor(), current, marker)})
   }
 
-  function spread(node:Element, props:any = {}, skipChildren:boolean) {
+  function spread(node:Elem, props:any = {}, skipChildren:boolean) {
     const prevProps:any = {}
     if (!skipChildren) effect(() => (prevProps.children = insertExpression(node, props.children, prevProps.children)))
     effect(() => (props.ref?.call ? sample(() => props.ref(node)) : (props.ref = node)))
@@ -44,7 +59,7 @@ export function runtime(window:Window):Runtime {
     return prevProps
   }
 
-  function assign(node:Element, props:any, skipChildren:boolean, prevProps:any = {}, skipRef:boolean = false) {
+  function assign(node:Elem, props:any, skipChildren:boolean, prevProps:any = {}, skipRef:boolean = false) {
     const svg = isSVG(node)
     props || (props = {})
     for (const prop in prevProps) {
@@ -125,6 +140,7 @@ export function runtime(window:Window):Runtime {
         if (value === current) return current;
       }
       if (multi) {
+        // console.log('doing multi')
         let node = current[0];
         if (node && node.nodeType === 3) {
           node.data !== value && (node.data = value);
@@ -141,6 +157,7 @@ export function runtime(window:Window):Runtime {
       effect(() => {
         let v = value();
         while (typeof v === "function") v = v();
+        console.log('insert expr', v)
         current = insertExpression(parent, v, current, marker);
       });
       return () => current;
@@ -225,7 +242,14 @@ export function runtime(window:Window):Runtime {
     return [node];
   }
 
-  return {window,render,insert,spread,assign,element,text}
+  function clearDelegatedEvents() {
+    if (document[$$EVENTS]) {
+      for (const name of document[$$EVENTS].keys()) document.removeEventListener(name, eventHandler);
+      delete document[$$EVENTS];
+    }
+  }
+
+  return {render,insert,spread,assign,element,text,isChild,clearDelegatedEvents}
 }
 
 const $$EVENTS = "_$DX_DELEGATE"
@@ -259,21 +283,12 @@ function eventHandler(e:any) {
   }
 }
 
-// function clearDelegatedEvents(document) {
-//   if (document[$$EVENTS]) {
-//     for (const name of document[$$EVENTS].keys()) document.removeEventListener(name, eventHandler);
-//     delete document[$$EVENTS];
-//   }
-// }
-
-function setAttribute(node:any, name:any, value?:any):any {
-  if (value == null) node.removeAttribute(name);
-  else node.setAttribute(name, value);
+function setAttribute(node:any, name:string, value?:string):any {
+  value ? node.setAttribute(name, value) : node.removeAttribute(name)
 }
 
-function setAttributeNS(node:any, namespace:any, name:any, value:any):any {
-  if (value == null) node.removeAttributeNS(namespace, name);
-  else node.setAttributeNS(namespace, name, value);
+function setAttributeNS(node:any, ns:string, name:string, value?:string):any {
+  value ? node.setAttributeNS(ns, name, value) : node.removeAttributeNS(ns, name)
 }
 
 function addEventListener(node:any, name:any, handler:any, delegate:any):any {
@@ -342,4 +357,79 @@ function toggleClassKey(node:any, key:any, value:any) {
 
 function appendNodes(parent:any, array:any, marker:any = null) {
   for (let i = 0, len = array.length; i < len; i++) parent.insertBefore(array[i], marker);
+}
+
+// Slightly modified version of: https://github.com/WebReflection/udomdiff/blob/master/index.js
+export default function reconcileArrays(parentNode:any, a:any, b:any) {
+  let bLength = b.length,
+    aEnd:any = a.length,
+    bEnd:any = bLength,
+    aStart = 0,
+    bStart = 0,
+    after:any = a[aEnd - 1].nextSibling,
+    map:any = null;
+
+  while (aStart < aEnd || bStart < bEnd) {
+    // common prefix
+    if (a[aStart] === b[bStart]) {
+      aStart++;
+      bStart++;
+      continue;
+    }
+    // common suffix
+    while (a[aEnd - 1] === b[bEnd - 1]) {
+      aEnd--;
+      bEnd--;
+    }
+    // append
+    if (aEnd === aStart) {
+      const node =
+        bEnd < bLength
+          ? bStart
+            ? b[bStart - 1].nextSibling
+            : b[bEnd - bStart]
+          : after;
+
+      while (bStart < bEnd) parentNode.insertBefore(b[bStart++], node);
+      // remove
+    } else if (bEnd === bStart) {
+      while (aStart < aEnd) {
+        if (!map || !map.has(a[aStart])) a[aStart].remove();
+        aStart++;
+      }
+      // swap backward
+    } else if (a[aStart] === b[bEnd - 1] && b[bStart] === a[aEnd - 1]) {
+      const node = a[--aEnd].nextSibling;
+      parentNode.insertBefore(b[bStart++], a[aStart++].nextSibling);
+      parentNode.insertBefore(b[--bEnd], node);
+
+      a[aEnd] = b[bEnd];
+      // fallback to map
+    } else {
+      if (!map) {
+        map = new Map();
+        let i = bStart;
+        while (i < bEnd) map.set(b[i], i++);
+      }
+
+      const index = map.get(a[aStart]);
+      if (index != null) {
+        if (bStart < index && index < bEnd) {
+          let i = aStart,
+            sequence = 1,
+            t;
+
+          while (++i < aEnd && i < bEnd) {
+            if ((t = map.get(a[i])) == null || t !== index + sequence) break;
+            sequence++;
+          }
+
+          if (sequence > index - bStart) {
+            const node = a[aStart];
+            while (bStart < index) parentNode.insertBefore(b[bStart++], node);
+          } else parentNode.replaceChild(b[bStart++], a[aStart++]);
+        } else aStart++;
+      } else a[aStart++].remove();
+    }
+  }
 }

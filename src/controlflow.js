@@ -1,4 +1,4 @@
-import {signal,sample,batch,memo,root,$TRACK} from './signal.ts'
+import {signal,sample,batch,memo,root,Signal,$TRACK} from './reactive.ts'
 
 /**
 Show children if `when` prop is true, otherwise show `fallback`.
@@ -16,12 +16,11 @@ export function Show(props) {
   })
 }
 
-const log = (m,v=m) => (console.debug(m,v),v)
-
 export function wrap(s,k) {
   const t = typeof k
   if (t === 'number') return (...a) => {
     const b = s()
+    // console.log(b,s)
     return (a.length) ? s(b.toSpliced(k, 1, a[0])).at(k) : b.at(k)
   }; else if (t === 'string') return (...a) => {
     const b = s()
@@ -41,25 +40,39 @@ List
 */
 export function List(props) {
   const fallback = "fallback" in props && { fallback: () => props.fallback }
-  const list = props.each.call ? props.each : ()=>props.each
+  const list = props.each
   const cb = props.children.call ? props.children : (v)=>v
-  let items = [], item, unusedItems, i, j, newValue, mapped, oldIndex, oldValue
-  function newValueGetter() { return newValue }
+  let items = [], item, unusedItems, i, j, newValue, mapped, oldIndex, oldValue,
+    indexes = cb.length > 1 ? [] : null;
+  function newValueGetter(_) { return newValue }
   function changeBoth() {
     item.index = i
     item.indexSetter?.(i)
     item.value = newValue
     item.valueSetter?.(newValueGetter)
   }
-  function mapper(disposer) {
-    const scopedV = newValue, scopedI = i;
-    const indexSetter = signal(scopedI), valueSetter = signal(scopedV)
-    const t = {value: newValue, index: scopedI, disposer, indexSetter, valueSetter}
-    items.push(t)
-    return cb((...a)=>valueSetter(...a),(...a)=>indexSetter(...a))
+  function mapperWithIndexes(disposer) {
+    const V = newValue, I = i, Is = signal(I), Vs = signal(V)
+    items.push({value: newValue, index: I, disposer, indexSetter: Is, valueSetter: Vs})
+    return cb(
+      (...a) => a.length ?
+        sample(()=>(console.log({ a }),Vs(),Vs(a[0]),
+          list(list=>(console.log({list}),list.toSpliced(I,1,a[0])))))
+        : Vs(),
+      ()=>Is())
   }
+  function mapperWithoutIndexes(disposer) {
+    const V = newValue, I = i, Vs = signal(V)
+    items.push({value: V, index: i, disposer, valueSetter: Vs})
+    return cb((...a) => a.length ?
+      sample(()=>(console.log({ a }),Vs(),Vs(a[0]),
+        list(list=>(console.log({list}),list.toSpliced(I,1,a[0])))))
+      : Vs())
+  }
+  const mapper = indexes ? mapperWithIndexes : mapperWithoutIndexes
   return memo(() => {
     const newItems = list() || []
+    console.log('new list')
     // (newItems)[$TRACK]; // top level tracking
     return sample(() => {
       const temp = new Array(newItems.length) // new mapped array
@@ -101,7 +114,7 @@ export function List(props) {
         }
       }
 
-      // #2 reduce unusedItems for matched items
+      // 3) reduce unusedItems for matched items
       for (j = matchedItems.length - 1; j >= 0; --j) {
         if (matchedItems[j] && --unusedItems !== j) {
           item = items[j]
@@ -110,16 +123,18 @@ export function List(props) {
         }
       }
 
-      // 3) change values when indexes match
+      // 4) change values when indexes match
+      console.log('change value...', unusedItems)
       for (j = unusedItems - 1; j >= 0; --j) {
         item = items[j];
         oldIndex = item.index;
+        console.log('meybe set value')
         if (!(oldIndex in temp) && oldIndex < newItems.length) {
           temp[oldIndex] = mapped[oldIndex]
           newValue = newItems[oldIndex]
-          console.log('set value')
           item.value = newValue
-          item.valueSetter?.(newValueGetter)
+          console.log('setting value', newValue,sample(item.valueSetter))
+          item.valueSetter?.(item.valueSetter)
           if (--unusedItems !== j) {
             items[j] = items[unusedItems]
             items[unusedItems] = item
@@ -127,8 +142,7 @@ export function List(props) {
         }
       }
 
-      // 4) change value & index when none matched
-      // 5) create new if no unused items left
+      // 5) change value & index when none matched and create new if no unused items left
       for (i = 0; i < newItems.length; ++i) {
         if (i in temp) continue
         newValue = newItems[i]

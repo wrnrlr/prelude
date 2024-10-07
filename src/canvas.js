@@ -1,4 +1,4 @@
-import {signal,effect,memo,context,useContext, onMount} from './signal.ts'
+import {signal,effect,memo,context,useContext, onMount} from './reactive.ts'
 import {$RUNTIME} from './runtime.ts'
 import {h} from './mod.ts'
 

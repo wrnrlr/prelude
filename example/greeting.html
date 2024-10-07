@@ -6,17 +6,20 @@
 import {h,signal,effect,render} from '../src/mod.ts'
 
 function Input(props) {
-  const onInput = e => props.value(parseInt(e.target.value))
-  return h('input',{type:'number',value:props.value,onInput})
+  const onInput = e => props.value(e.target.value)
+  return h('input',{value:props.value,onInput})
 }
 
-render(()=>{
-  const count = signal(1)
-  return [
-    h('button',{onClick(e){count(i=>i-1)}},'-'),
-    h(Input,{value:()=>count}),
-    h('button',{onClick(e){count(i=>i+1)}},'+')
-  ]
-},document.body)
+function Greeting(props) {
+  return h("div", {}, ["Hello ",props.name])
+}
+
+function App() {
+  const name = signal('Alice')
+  return h('h1','a')
+}
+
+const name = signal('Alice')
+render(h('h1','a'),document.body)
 
 </script>
