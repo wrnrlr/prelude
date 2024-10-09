@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<head>
+<title>Counter</title>
+<link href="https://unpkg.com/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />
+<script src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+
+<nav style="display: flex; justify-content: space-between; padding: 0.25rem 0.5rem; align-items: center;">
+  <div>
+    <img src="./banner.svg" alt="PreludeJS Logo" style="height: 3rem;">
+  </div>
+  <div style="display: flex; gap: 0.75rem;">
+    <a href="/docs/index.html">Get Started</a>
+    <a href="/docs/modules.html">API</a>
+    <a href="#examples">Examples</a>
+    <a href="https://github.com/wrnrlr/prelude">Github</a>
+  </div>
+</nav>
+
+<section class="jumbo">
+  <img class="logo" src="./logo.svg" alt="PreludeJS Logo" style="width: 300px">
+  <div style="width: 900px">
+    <h1>A <em>signal</em> based frontend library with fine-grained reactivity</h1>
+    <h2>Prelude lets you develop web application in a familiar component-based functional style</h2>
+    <p></p>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="/docs/index.html">Learn More</a>
+      <a href="/docs/modules.html">API Reference</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div style="width: 900px">
+    <h1></h1>
+    <p>Prelude works directly in the browser using just vanilla JavaScript
+    but for more complex applications it can also be writen in TypeScript and used together with a bundler like Vite.</p>
+    <pre><code class="language-js">
+import {h, signal, render} from 'https://esm.sh/wrnrlr/prelude'
+
+const count = signal(1)
+
+function Counter(props) {
+  const onClick = e => props.count(i => i+1)
+  return [
+    props.value,
+    h('button', {value:props.value, onClick})
+  ]
+}
+
+render(h(Counter, {value:signal})), document.body)
+    </code></pre>
+    <p>Try out this example for yourself <a href="http://codepen.io">here!</a></p>
+  </div>
+</section>
+
+<section>
+  <div class="wide wrapper">
+    <h3>Signals with two-way data-binding</h3>
+    <h2></h2>
+    <p>Signals are nothing more then a function that allows you to both get and set a value.</p>
+    <pre><code class="language-javascript">
+const a = signal(1)
+a() // 1
+a(2) // 2
+    </code></pre>
+    <p>Signals can be combined with other functions </p>
+    <h3>Hyperscript: A DSL for HTML</h3>
+    <p>Simple tags components</p>
+    <pre><code class="language-javascript">
+h('h1', 'Hello World!')
+    </code></pre>
+    <p>Higher order components</p>
+    <pre><code class="language-javascript">
+function Greet(props) {
+    return h('h1', ['Hello', props.children])
+}
+
+h(Greet, 'Bob')
+    </code></pre>
+  </div>
+</section>
+
+<section id="examples" style="padding: 2rem; display: flex; flex-direction: column; justify-content: center;">
+  <div style="width: 900px">
+    <h1>Check out our examples yourself</h1>
+    <h2>See how easy it is to developer a variaty of different web applications with Prelude.</h2>
+  </div>
+  <ul style="display: flex; gap: 1.5rem; list-style: none">
+    <li>
+      <a href="./example/counter.html" class="card">
+        <div class="title">Counter</div>
+        <iframe class="example" title="Counter" src="./example/counter.html" scrolling="no"></iframe>
+      </a>
+    </li>
+    <li>
+      <a href="./example/todo.html" class="card">
+        <div class="title">Todo</div>
+        <iframe class="example" title="Todo" src="./example/todo.html" scrolling="no"></iframe>
+      </a>
+    </li>
+    <li>
+      <a href="./example/form.html" class="card">
+        <div class="title">Form</div>
+        <iframe class="example" title="Form" src="./example/form.html" scrolling="no"></iframe>
+      </a>
+    </li>
+  </ul>
+  <div style="width: 900px">
+    <p><a href="">All Examples</a></p>
+  </div>
+</section>
+
+<section>
+  <div style="width: 900px">
+    <h1>Welcome to our community!</h1>
+    <h2>Free and Open Source Software</h2>
+    <ul>
+      <li>Only 10kb minified js, small bundle size for a lot of power</li>
+      <li>Typescript support</li>
+      <li>Fully documented</li>
+      <li>Extensivaly tested</li>
+      <li>No seperate build process requires, works directly in the browser</li>
+    </ul>
+  </div>
+</section>
+
+<section style="display:flex; flex-direction:row; padding: 2rem; background-color: white">
+  <div style="display: flex; flex-direction:column; flex-grow: 2; align-self: stretch; justify-content: space-between">
+      <div style="display: flex; gap: 0.75rem">
+          <a href="/">Home</a>
+          <a href="/docs/index.html">Quick Guide</a>
+          <a href="/docs/modules.html">API Reference</a>
+      </div>
+      <div style="display: flex; gap: 0.75rem">
+          <a href="https://github.com/wrnrlr/prelude">Github</a>
+          <a href="https://npm.com/@wrnrlr/prelude">NPM</a>
+          <a href="https://jsr.io/@wrnrlr/prelude">JSR</a>
+      </div>
+      <div>Some Right Reserved &copy; 2024</div>
+  </div>
+  <img class="emblem" src="./logo.svg" style="width: 100px">
+</section>
+
+<style >
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Warang+Citi&display=swap');
+@import url('/presets.css')
+
+html {
+  font-size: 20px;
+  font-family: "Noto Sans Warang Citi", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  margin: 0;
+  display: flex;
+  width: 100%;
+  height: 100%
+}
+
+body {
+  margin: 0;
+  flex-grow: 2;
+  width: 100%;
+  height: 100%;
+}
+
+a { color: dodgerblue; }
+a:visited { color: dodgerblue; }
+
+h1 { font-size: 2.5rem; color: var(--slate-900); font-weight: bolder }
+h2 { font-size: 2rem; color: var(--slate-700); line-height: 1.5 }
+
+section {
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+section:nth-child(even) { background-color: var(--neutral-100); }
+section:nth-child(odd) { background-color: var(--neutral-200); }
+
+section > .wrapper { width: 700px }
+section > .wide.wrapper { width: 900px }
+
+/* Top Navigation */
+
+iframe.example {
+  zoom: 1.0;
+  width: 100%;
+  height:100%;
+  border: none;
+  overflow: hidden;
+  background-color: var(--neutral-50)
+}
+
+/* iframe.example > a {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0.3, 1, 0, 0.0);
+  cursor: pointer;
+} */
+
+.card {
+  width: 20rem;
+  height: 16rem;
+  display: flex;
+  flex-direction: column;
+  /* border: 1px solid var(--neutral-400); */
+  /* border-radius: 0.5em 0.5em 0 0; */
+}
+
+.card > .title {
+  font-weight: bold;
+  color: var(--gray-700);
+  padding: 0.5em;
+  background-color: var(--gray-300);
+  border-radius: 0.5em 0.5em 0 0;
+  /* border-bottom: 1px solid var(--gray-400); */
+}
+
+a.card {
+  text-decoration: none;
+}
+
+</style>
