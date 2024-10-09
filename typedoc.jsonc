@@ -2,6 +2,7 @@
   "name": "prelude",
   "hostedBaseUrl": "https://wrnrlr.github.io/prelude",
   "useHostedBaseUrlForAbsoluteLinks": false,
+  "out":"./public/docs/",
   "compilerOptions": {
     "strict": true,
     "allowJs": true,
