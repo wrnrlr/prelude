@@ -2,7 +2,7 @@ import {sample} from './reactive.ts'
 import {Properties,BooleanAttributes,DelegatedEvents,DOMElements, type Mountable} from './constants.ts'
 import type {Runtime,$RUNTIME} from './runtime.ts'
 
-const ELEMENT = Symbol(), {isArray} = Array
+const ELEMENT: unique symbol = Symbol(), {isArray} = Array
 
 export type PropsKeys = typeof Properties extends Set<infer K> ? K : never;
 export type BooleanProps = typeof BooleanAttributes extends Set<infer K> ? K : never;

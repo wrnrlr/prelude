@@ -3,13 +3,13 @@ export {signal,effect,sample,batch,memo,root,onMount} from './reactive.ts'
 export {nbsp} from './constants.ts'
 export {wrap,Show,List} from './controlflow.js'
 export {runtime, type Runtime} from './runtime.ts'
-import {runtime} from './runtime.ts'
+import {runtime, type Runtime} from './runtime.ts'
 export {hyperscript,type HyperScript,type Child,type Props,type Tag,type View,type Component} from './hyperscript.ts'
-import {hyperscript} from './hyperscript.ts'
+import {type HyperScript, hyperscript} from './hyperscript.ts'
 export {Input,Table} from './components.js'
 export * from './canvas.js'
 
-const r = runtime(window as any)
+const r:Runtime = runtime(window as any)
 
 /** h
 @example Element with a single child
@@ -26,7 +26,7 @@ h(Input,{onInput:e => {}})
 ```
 @group Hyperscript
 */
-const h = hyperscript(r)
+const h:HyperScript = hyperscript(r)
 
 const render = r.render
 
