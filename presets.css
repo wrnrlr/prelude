@@ -1,4 +1,3 @@
-@font-face {font-family:BasicIcons;src:url(/static/fa.woff2) format('woff2');}
 *, ::before, ::after {box-sizing: border-box; margin: 0; min-width: 0}
 html {
   height: 100%;
