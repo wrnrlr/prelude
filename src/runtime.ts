@@ -32,7 +32,7 @@ export function runtime(window:Window):Runtime {
     element = (name:string) => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
     text = (s:string) => document.createTextNode(s)
 
-  function isChild(a:any):boolean {
+  function isChild(a:unknown):boolean {
     return a instanceof document.Element
   }
 
@@ -78,7 +78,7 @@ export function runtime(window:Window):Runtime {
     }
   }
 
-  function assignProp(node:any, prop:any, value:any, prev:any, isSVG:any, skipRef:any) {
+  function assignProp(node:Node, prop:any, value:any, prev:any, isSVG:any, skipRef:any) {
     let isCE, isProp, isChildProp, propAlias, forceProp;
     if (prop === "style") return style(node, value, prev);
     if (prop === "classList") return classList(node, value, prev);
@@ -127,7 +127,7 @@ export function runtime(window:Window):Runtime {
     return value;
   }
 
-  function insertExpression(parent:any, value:any, current?:any, marker?:any, unwrapArray?:any) {
+  function insertExpression(parent:Node, value:any, current?:any, marker?:Node, unwrapArray?:any) {
     while (current?.call) current = current();
     if (value === current) return current;
     const t = typeof value,
@@ -140,7 +140,6 @@ export function runtime(window:Window):Runtime {
         if (value === current) return current;
       }
       if (multi) {
-        // console.log('doing multi')
         let node = current[0];
         if (node && node.nodeType === 3) {
           node.data !== value && (node.data = value);
@@ -157,7 +156,6 @@ export function runtime(window:Window):Runtime {
       effect(() => {
         let v = value();
         while (typeof v === "function") v = v();
-        console.log('insert expr', v)
         current = insertExpression(parent, v, current, marker);
       });
       return () => current;
@@ -224,7 +222,7 @@ export function runtime(window:Window):Runtime {
     return dynamic;
   }
 
-  function cleanChildren(parent:any, current?:any, marker?:any, replacement?:any):any {
+  function cleanChildren(parent:any, current?:any, marker?:Node, replacement?:any):any {
     if (marker === undefined) return (parent.textContent = "");
     const node = replacement || document.createTextNode('');
     if (current.length) {
@@ -254,7 +252,7 @@ export function runtime(window:Window):Runtime {
 
 const $$EVENTS = "_$DX_DELEGATE"
 
-function delegateEvents(eventNames:any, document:any) {
+function delegateEvents(eventNames:string[], document:any) {
   const e = document[$$EVENTS] || (document[$$EVENTS] = new Set());
   for (let i = 0, l = eventNames.length; i < l; i++) {
     const name = eventNames[i];
@@ -283,15 +281,15 @@ function eventHandler(e:any) {
   }
 }
 
-function setAttribute(node:any, name:string, value?:string):any {
+function setAttribute(node:Node, name:string, value?:string):any {
   value ? node.setAttribute(name, value) : node.removeAttribute(name)
 }
 
-function setAttributeNS(node:any, ns:string, name:string, value?:string):any {
+function setAttributeNS(node:Node, ns:string, name:string, value?:string):any {
   value ? node.setAttributeNS(ns, name, value) : node.removeAttributeNS(ns, name)
 }
 
-function addEventListener(node:any, name:any, handler:any, delegate:any):any {
+function addEventListener(node:Node, name:any, handler:any, delegate:any):any {
   if (delegate) {
     if (isArray(handler)) {
       node[`$$${name}`] = handler[0];
@@ -303,7 +301,7 @@ function addEventListener(node:any, name:any, handler:any, delegate:any):any {
   } else node.addEventListener(name, handler);
 }
 
-function classList(node:any, value:any, prev:any = {}):any {
+function classList(node:Node, value:any, prev:any = {}):any {
   const classKeys = Object.keys(value || {}),
     prevKeys = Object.keys(prev);
   let i, len;
@@ -323,7 +321,7 @@ function classList(node:any, value:any, prev:any = {}):any {
   return prev;
 }
 
-function style(node:any, value:any, prev:any) {
+function style(node:Node, value:any, prev:any) {
   if (!value) return prev ? setAttribute(node, "style") : value;
   const nodeStyle = node.style;
   if (typeof value === "string") return (nodeStyle.cssText = value);
@@ -345,29 +343,30 @@ function style(node:any, value:any, prev:any) {
   return prev;
 }
 
-function toPropertyName(name:any):any {
+function toPropertyName(name:string):string {
   return name.toLowerCase().replace(/-([a-z])/g, (_:any, w:string) => w.toUpperCase());
 }
 
 function toggleClassKey(node:any, key:any, value:any) {
-  const classNames = key.trim().split(/\s+/);
+  const classNames = key.trim().split(/\s+/)
   for (let i = 0, nameLen = classNames.length; i < nameLen; i++)
-    node.classList.toggle(classNames[i], value);
+    node.classList.toggle(classNames[i], value)
 }
 
-function appendNodes(parent:any, array:any, marker:any = null) {
-  for (let i = 0, len = array.length; i < len; i++) parent.insertBefore(array[i], marker);
+function appendNodes(parent:Node, array:Node[], marker:null|Node = null) {
+  for (let i = 0, len = array.length; i < len; i++)
+    parent.insertBefore(array[i], marker)
 }
 
 // Slightly modified version of: https://github.com/WebReflection/udomdiff/blob/master/index.js
-export default function reconcileArrays(parentNode:any, a:any, b:any) {
+function reconcileArrays(parentNode:Node, a:Node[], b:Node[]) {
   let bLength = b.length,
-    aEnd:any = a.length,
-    bEnd:any = bLength,
+    aEnd = a.length,
+    bEnd = bLength,
     aStart = 0,
     bStart = 0,
-    after:any = a[aEnd - 1].nextSibling,
-    map:any = null;
+    after = a[aEnd - 1].nextSibling,
+    map:Map<Node,number>|null = null;
 
   while (aStart < aEnd || bStart < bEnd) {
     // common prefix
@@ -417,7 +416,7 @@ export default function reconcileArrays(parentNode:any, a:any, b:any) {
         if (bStart < index && index < bEnd) {
           let i = aStart,
             sequence = 1,
-            t;
+            t:number|undefined;
 
           while (++i < aEnd && i < bEnd) {
             if ((t = map.get(a[i])) == null || t !== index + sequence) break;
