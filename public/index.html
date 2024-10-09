@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<head>
+<title>Counter</title>
+<link href="https://unpkg.com/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />
+<script src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+
+<nav style="display: flex; justify-content: space-between; padding: 0.25rem 0.5rem; align-items: center;">
+  <div>
+    <img src="./assets/banner.svg" alt="PreludeJS Logo" style="height: 3rem;">
+  </div>
+  <div style="display: flex; gap: 0.75rem;">
+    <a href="/docs/index.html">Get Started</a>
+    <a href="/docs/modules.html">API</a>
+    <a href="#examples">Examples</a>
+    <a href="https://github.com/wrnrlr/prelude">Github</a>
+  </div>
+</nav>
+
+<section class="jumbo">
+  <img class="logo" src="./assets/logo.svg" alt="PreludeJS Logo" style="width: 300px">
+  <div style="width: 900px">
+    <h1>A <em>signal</em> based frontend library with fine-grained reactivity</h1>
+    <h2>Prelude lets you develop web application in a familiar component-based functional style</h2>
+    <p></p>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="/docs/index.html">Learn More</a>
+      <a href="/docs/modules.html">API Reference</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div style="width: 900px">
+    <h1></h1>
+    <p>Prelude works directly in the browser using just vanilla JavaScript
+    but for more complex applications it can also be writen in TypeScript and used together with a bundler like Vite.</p>
+    <pre><code class="language-js">
+import {h, signal, render} from 'https://esm.sh/wrnrlr/prelude'
+
+const count = signal(1)
+
+function Counter(props) {
+  const onClick = e => props.count(i => i+1)
+  return [
+    props.value,
+    h('button', {value:props.value, onClick})
+  ]
+}
+
+render(h(Counter, {value:signal})), document.body)
+    </code></pre>
+    <p>Try out this example for yourself <a href="http://codepen.io">here!</a></p>
+  </div>
+</section>
+
+<section>
+  <div class="wide wrapper">
+    <h3>Signals with two-way data-binding</h3>
+    <h2></h2>
+    <p>Signals are nothing more then a function that allows you to both get and set a value.</p>
+    <pre><code class="language-javascript">
+const a = signal(1)
+a() // 1
+a(2) // 2
+    </code></pre>
+    <p>Signals can be combined with other functions </p>
+    <h3>Hyperscript: A DSL for HTML</h3>
+    <p>Simple tags components</p>
+    <pre><code class="language-javascript">
+h('h1', 'Hello World!')
+    </code></pre>
+    <p>Higher order components</p>
+    <pre><code class="language-javascript">
+function Greet(props) {
+    return h('h1', ['Hello', props.children])
+}
+
+h(Greet, 'Bob')
+    </code></pre>
+  </div>
+</section>
+
+<section id="examples" style="padding: 2rem; display: flex; flex-direction: column; justify-content: center;">
+  <div style="width: 900px">
+    <h1>Check out our examples yourself</h1>
+    <h2>See how easy it is to developer a variaty of different web applications with Prelude.</h2>
+  </div>
+  <ul style="display: flex; gap: 1.5rem; list-style: none">
+    <li>
+      <a href="./example/counter.html" class="card">
+        <div class="title">Counter</div>
+        <iframe class="example" title="Counter" src="./example/counter.html" scrolling="no"></iframe>
+      </a>
+    </li>
+    <li>
+      <a href="./example/todo.html" class="card">
+        <div class="title">Todo</div>
+        <iframe class="example" title="Todo" src="./example/todo.html" scrolling="no"></iframe>
+      </a>
+    </li>
+    <li>
+      <a href="./example/form.html" class="card">
+        <div class="title">Form</div>
+        <iframe class="example" title="Form" src="./example/form.html" scrolling="no"></iframe>
+      </a>
+    </li>
+  </ul>
+  <div style="width: 900px">
+    <p><a href="">All Examples</a></p>
+  </div>
+</section>
+
+<section>
+  <div style="width: 900px">
+    <h1>Welcome to our community!</h1>
+    <h2>Free and Open Source Software</h2>
+    <ul>
+      <li>Only 10kb minified js, small bundle size for a lot of power</li>
+      <li>Typescript support</li>
+      <li>Fully documented</li>
+      <li>Extensivaly tested</li>
+      <li>No seperate build process requires, works directly in the browser</li>
+    </ul>
+  </div>
+</section>
+
+<section style="display:flex; flex-direction:row; padding: 2rem; background-color: white">
+  <div style="display: flex; flex-direction:column; flex-grow: 2; align-self: stretch; justify-content: space-between">
+      <div style="display: flex; gap: 0.75rem">
+          <a href="/">Home</a>
+          <a href="/docs/index.html">Quick Guide</a>
+          <a href="/docs/modules.html">API Reference</a>
+      </div>
+      <div>Some Right Reserved &copy; 2024</div>
+  </div>
+  <img class="emblem" src="./assets/logo.svg" style="width: 100px">
+</section>
+
+<style >
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Warang+Citi&display=swap');
+
+html {
+  font-size: 20px;
+  font-family: "Noto Sans Warang Citi", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  margin: 0;
+  display: flex;
+  width: 100%;
+  height: 100%
+}
+
+body {
+  margin: 0;
+  flex-grow: 2;
+  width: 100%;
+  height: 100%;
+}
+
+:root {
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --gray-950: #030712;
+
+  --red-50: #f9fafb;
+  --red-100: #f3f4f6;
+  --red-200: #e5e7eb;
+  --red-300: #d1d5db;
+  --red-400: #9ca3af;
+  --red-500: #6b7280;
+  --red-600: #4b5563;
+  --red-700: #374151;
+  --red-800: #1f2937;
+  --red-900: #111827;
+  --red-950: #030712;
+
+  /* red */
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-200: #fecaca;
+  --red-300: #fca5a5;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+  --red-800: #991b1b;
+  --red-900: #7f1d1d;
+  --red-950: #450a0a;
+
+  /* orange */
+
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-200: #fed7aa;
+  --orange-300: #fdba74;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-600: #ea580c;
+  --orange-700: #c2410c;
+  --orange-800: #9a3412;
+  --orange-900: #7c2d12;
+  --orange-950: #431407;
+
+  /* yellow */
+
+  --yellow-50: #fefce8;
+  --yellow-100: #fef9c3;
+  --yellow-200: #fef08a;
+  --yellow-300: #fde047;
+  --yellow-400: #facc15;
+  --yellow-500: #eab308;
+  --yellow-600: #ca8a04;
+  --yellow-700: #a16207;
+  --yellow-800: #854d0e;
+  --yellow-900: #713f12;
+  --yellow-950: #422006;
+
+  /* lime */
+
+  --lime-50: #f7fee7;
+  --lime-100: #ecfccb;
+  --lime-200: #d9f99d;
+  --lime-300: #bef264;
+  --lime-400: #a3e635;
+  --lime-500: #84cc16;
+  --lime-600: #65a30d;
+  --lime-700: #4d7c0f;
+  --lime-800: #3f6212;
+  --lime-900: #365314;
+  --lime-950: #1a2e05;
+
+  /* green */
+
+
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-200: #bbf7d0;
+  --green-300: #86efac;
+  --green-400: #4ade80;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --green-800: #166534;
+  --green-900: #14532d;
+  --green-950: #052e16;
+
+  /* emrald */
+
+  --emrald-50: #ecfdf5;
+  --emrald-100: #d1fae5;
+  --emrald-200: #a7f3d0;
+  --emrald-300: #6ee7b7;
+  --emrald-400: #34d399;
+  --emrald-500: #10b981;
+  --emrald-600: #059669;
+  --emrald-700: #047857;
+  --emrald-800: #065f46;
+  --emrald-900: #064e3b;
+  --emrald-950: #022c22;
+
+  /* teal */
+
+
+  --teal-50: #f0fdfa;
+  --teal-100: #ccfbf1;
+  --teal-200: #99f6e4;
+  --teal-300: #5eead4;
+  --teal-400: #2dd4bf;
+  --teal-500: #14b8a6;
+  --teal-600: #0d9488;
+  --teal-700: #0f766e;
+  --teal-800: #115e59;
+  --teal-900: #134e4a;
+  --teal-950: #042f2e;
+
+  /* cyan */
+
+  --cyan-50: #ecfeff;
+  --cyan-100: #cffafe;
+  --cyan-200: #a5f3fc;
+  --cyan-300: #67e8f9;
+  --cyan-400: #22d3ee;
+  --cyan-500: #06b6d4;
+  --cyan-600: #0891b2;
+  --cyan-700: #0e7490;
+  --cyan-800: #155e75;
+  --cyan-900: #164e63;
+  --cyan-950: #083344;
+
+  /* sky */
+
+  --skey-50: #f0f9ff;
+  --skey-100: #e0f2fe;
+  --skey-200: #bae6fd;
+  --skey-300: #7dd3fc;
+  --skey-400: #38bdf8;
+  --skey-500: #0ea5e9;
+  --skey-600: #0284c7;
+  --skey-700: #0369a1;
+  --skey-800: #075985;
+  --skey-900: #0c4a6e;
+  --skey-950: #082f49;
+
+  /* blue */
+
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+  --blue-950: #172554;
+
+  /* indigo */
+
+
+  --indigo-50: #eef2ff;
+  --indigo-100: #e0e7ff;
+  --indigo-200: #c7d2fe;
+  --indigo-300: #a5b4fc;
+  --indigo-400: #818cf8;
+  --indigo-500: #6366f1;
+  --indigo-600: #4f46e5;
+  --indigo-700: #4338ca;
+  --indigo-800: #3730a3;
+  --indigo-900: #312e81;
+  --indigo-950: #1e1b4b;
+
+  /* violet */
+
+  --violet-50: #f5f3ff;
+  --violet-100: #ede9fe;
+  --violet-200: #ddd6fe;
+  --violet-300: #c4b5fd;
+  --violet-400: #a78bfa;
+  --violet-500: #8b5cf6;
+  --violet-600: #7c3aed;
+  --violet-700: #6d28d9;
+  --violet-800: #5b21b6;
+  --violet-900: #4c1d95;
+  --violet-950: #2e1065;
+
+  /* purple */
+
+  --purple-50: #faf5ff;
+  --purple-100: #f3e8ff;
+  --purple-200: #e9d5ff;
+  --purple-300: #d8b4fe;
+  --purple-400: #c084fc;
+  --purple-500: #a855f7;
+  --purple-600: #9333ea;
+  --purple-700: #7e22ce;
+  --purple-800: #6b21a8;
+  --purple-900: #581c87;
+  --purple-950: #3b0764;
+
+  /* fuchsia */
+
+
+  --fuchsia-50: #fdf4ff;
+  --fuchsia-100: #fae8ff;
+  --fuchsia-200: #f5d0fe;
+  --fuchsia-300: #f0abfc;
+  --fuchsia-400: #e879f9;
+  --fuchsia-500: #d946ef;
+  --fuchsia-600: #c026d3;
+  --fuchsia-700: #a21caf;
+  --fuchsia-800: #86198f;
+  --fuchsia-900: #701a75;
+  --fuchsia-950: #4a044e;
+
+  /* pink */
+
+
+  --pink-50: #fdf2f8;
+  --pink-100: #fce7f3;
+  --pink-200: #fbcfe8;
+  --pink-300: #f9a8d4;
+  --pink-400: #f472b6;
+  --pink-500: #ec4899;
+  --pink-600: #db2777;
+  --pink-700: #be185d;
+  --pink-800: #9d174d;
+  --pink-900: #831843;
+  --pink-950: #500724;
+
+  /* rose */
+
+  --rose-50: #fff1f2;
+  --rose-100: #ffe4e6;
+  --rose-200: #fecdd3;
+  --rose-300: #fda4af;
+  --rose-400: #fb7185;
+  --rose-500: #f43f5e;
+  --rose-600: #e11d48;
+  --rose-700: #be123c;
+  --rose-800: #9f1239;
+  --rose-900: #881337;
+  --rose-950: #4c0519;
+
+  --neutral-50: #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #d4d4d4;
+  --neutral-400: #a3a3a3;
+  --neutral-500: #737373;
+  --neutral-600: #525252;
+  --neutral-700: #404040;
+  --neutral-800: #262626;
+  --neutral-900: #171717;
+  --neutral-950: #0a0a0a;
+}
+
+a { color: dodgerblue; }
+a:visited { color: dodgerblue; }
+
+h1 { font-size: 2.5rem; color: var(--slate-900); font-weight: bolder }
+h2 { font-size: 2rem; color: var(--slate-700); line-height: 1.5 }
+
+section {
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+section:nth-child(even) { background-color: var(--neutral-100); }
+section:nth-child(odd) { background-color: var(--neutral-200); }
+
+section > .wrapper { width: 700px }
+section > .wide.wrapper { width: 900px }
+
+/* Top Navigation */
+
+iframe.example {
+  zoom: 1.0;
+  width: 100%;
+  height:100%;
+  border: none;
+  overflow: hidden;
+  background-color: var(--neutral-50)
+}
+
+/* iframe.example > a {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0.3, 1, 0, 0.0);
+  cursor: pointer;
+} */
+
+.card {
+  width: 20rem;
+  height: 16rem;
+  display: flex;
+  flex-direction: column;
+  /* border: 1px solid var(--neutral-400); */
+  /* border-radius: 0.5em 0.5em 0 0; */
+}
+
+.card > .title {
+  font-weight: bold;
+  color: var(--gray-700);
+  padding: 0.5em;
+  background-color: var(--gray-300);
+  border-radius: 0.5em 0.5em 0 0;
+  /* border-bottom: 1px solid var(--gray-400); */
+}
+
+a.card {
+  text-decoration: none;
+}
+
+</style>
