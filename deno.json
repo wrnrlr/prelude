@@ -18,6 +18,9 @@
   "tasks": {
     "dev": "deno run -A npm:vite@^5.4.2",
     "test": "deno test -A --unstable-sloppy-imports ./test/*.[jt]s",
-    "docs": "deno run -A npm:typedoc "
+    "docs": "deno run -A npm:typedoc",
+    "build": "deno run -A npm:typedoc && deno run -A npm:vite@^5.4.2 build",
+    "release": "deno publish && npm publish --access public",
+    "clean": "rm -rf node_modules/ dist/"
   }
 }
