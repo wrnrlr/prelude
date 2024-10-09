@@ -1,0 +1,13 @@
+{
+  "name": "@wrnrlr/prelude",
+  "type": "module",
+  "version": "0.0.1",
+  "author": "Werner Laurensse",
+  "description": "A signal based frontend library with fine-grained reactivity",
+  "main": "./src/mod.ts",
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "scripts": {}
+}
