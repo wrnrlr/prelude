@@ -25,7 +25,7 @@ type EmptyProps = Record<string,never>
 @group Hyperscript
 */
 export type HyperScript = {
-  (children:Child[]): View
+  // (children:Child[]): View
 
   (element:Tag, props:ElementProps, children:Child): View
   (element:Tag, props:ElementProps): View
@@ -70,9 +70,8 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
     if (isArray(c))
       for (const child of c)
         item(e, child, m)
-    else if (typeof c === 'object' && r.isChild(c)) {
+    else if (typeof c === 'object' && r.isChild(c))
       r.insert(e, c, m)
-    }
     else if (typeof c==='string')
       (e as Element).appendChild(r.text(c))
     else if ((c as any).call) {
@@ -82,18 +81,12 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
   }
 
   return function h<T,K=unknown>(
-    first:Component<T&{children:K}>|Tag|Child[],
+    element:Component<T&{children:K}>|Tag, // , Child[]
     second?:T|K|Child,
     third?:K|Child
   ): View {
-    let element: Component<T&{children:K}>|Tag
     let props: T
     let children: Child
-
-    if (isArray(first)) {
-      second = first
-      element = Fragment
-    } else element = first
 
     if (typeof second === 'object' && !isArray(second)) {
       children = third || [];
@@ -106,6 +99,7 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
     let ret:View
 
     if ((element as Component<T>).call) {
+      let e:any
       const d = Object.getOwnPropertyDescriptors(props)
       if (children) (props as any).children = children
       for (const k in d) {
@@ -121,7 +115,8 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
           dynamicProperty(props as any, k)
         }
       }
-      ret = () => sample(()=>(element as Component<T&{children:K}>)(props as T&{children:K}))
+      e = sample(()=>(element as Component<T&{children:K}>)(props as T&{children:K}))
+      ret = () => e
     } else {
       const tag = parseTag(element as Tag)
       const multiExpression = detectMultiExpression(children) ? null : undefined
@@ -145,10 +140,7 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
       }
       (dynamic ? r.spread : r.assign) (e, props2, !!(children as Child[])?.length)
       item(e,children as any,multiExpression)
-      ret = () => {
-        // console.log('dynamic? ', tag, dynamic,children);
-        return e
-      }
+      ret = () => e
     }
     ret[ELEMENT] = true
     return ret

@@ -54,27 +54,11 @@ function App() {
         onDelete:_=>todos(v => v.toSpliced(i(),1))})
     )]),
     h('form',{onSubmit},[h(Input,{value:()=>name,tabindex:1})]),
-    h('pre.hello',()=>'todos: '+JSON.stringify(todos(),undefined,2))
+    // h('pre.hello',()=>'todos: '+JSON.stringify(todos(),undefined,2))
   ]
 }
 
-function Item(props) {
-  return h('li', h('input', {value:props.value, onInput:e => props.value(e.target.value)}))
-}
-
-function App2() {
-  const nrs = signal(['a','b','c'])
-  return [
-    h('h3', 'Todo'),
-    h('ul', h(List, {each:()=>nrs}, (value,_) => h(Item,{value:()=>value}))),
-    // h('ul', h(List, {each:()=>nrs},
-    //   (value) => h('li', h('input', {value, onInput:e => value(e.target.value)})))),
-    h('button',{onClick:e=>nrs([...nrs(), ''])},'Add'),
-    h('pre.hello',()=>'todos: '+JSON.stringify(nrs(),undefined,2))
-  ]
-}
-
-render(App2, document.body)
+render(App, document.body)
 
 </script>
 

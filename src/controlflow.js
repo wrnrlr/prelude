@@ -1,4 +1,4 @@
-import {signal,sample,batch,memo,root,Signal,$TRACK} from './reactive.ts'
+import {signal,sample,batch,memo,root,Signal} from './reactive.ts'
 
 /**
 Show children if `when` prop is true, otherwise show `fallback`.
@@ -20,7 +20,6 @@ export function wrap(s,k) {
   const t = typeof k
   if (t === 'number') return (...a) => {
     const b = s()
-    // console.log(b,s)
     return (a.length) ? s(b.toSpliced(k, 1, a[0])).at(k) : b.at(k)
   }; else if (t === 'string') return (...a) => {
     const b = s()
@@ -56,8 +55,7 @@ export function List(props) {
     items.push({value: newValue, index: I, disposer, indexSetter: Is, valueSetter: Vs})
     return cb(
       (...a) => a.length ?
-        sample(()=>(console.log({ a }),Vs(),Vs(a[0]),
-          list(list=>(console.log({list}),list.toSpliced(I,1,a[0])))))
+        sample(()=>list(list=>list.toSpliced(I,1,a[0])))
         : Vs(),
       ()=>Is())
   }
@@ -65,14 +63,12 @@ export function List(props) {
     const V = newValue, I = i, Vs = signal(V)
     items.push({value: V, index: i, disposer, valueSetter: Vs})
     return cb((...a) => a.length ?
-      sample(()=>(console.log({ a }),Vs(),Vs(a[0]),
-        list(list=>(console.log({list}),list.toSpliced(I,1,a[0])))))
+      sample(()=>list(list=>list.toSpliced(I,1,a[0])))
       : Vs())
   }
   const mapper = indexes ? mapperWithIndexes : mapperWithoutIndexes
   return memo(() => {
     const newItems = list() || []
-    console.log('new list')
     // (newItems)[$TRACK]; // top level tracking
     return sample(() => {
       const temp = new Array(newItems.length) // new mapped array
@@ -124,16 +120,13 @@ export function List(props) {
       }
 
       // 4) change values when indexes match
-      console.log('change value...', unusedItems)
       for (j = unusedItems - 1; j >= 0; --j) {
         item = items[j];
         oldIndex = item.index;
-        console.log('meybe set value')
         if (!(oldIndex in temp) && oldIndex < newItems.length) {
           temp[oldIndex] = mapped[oldIndex]
           newValue = newItems[oldIndex]
           item.value = newValue
-          console.log('setting value', newValue,sample(item.valueSetter))
           item.valueSetter?.(item.valueSetter)
           if (--unusedItems !== j) {
             items[j] = items[unusedItems]
@@ -151,7 +144,6 @@ export function List(props) {
           temp[i] = mapped[item.index]
           batch(changeBoth);
         } else {
-          console.log('make value')
           temp[i] = root(mapper)
         }
       }
