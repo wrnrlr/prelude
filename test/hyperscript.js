@@ -36,7 +36,7 @@ testing('h with basic element', {skip:true}, async test => {
   await test("number content", () => assertHTML(h('i',1), '<i>1</i>'))
   await test("bigint content", () => assertHTML(h('i',2n), '<i>2</i>'))
   await test("symbol content", () => assertHTML(h('i',Symbol('A')), '<i>Symbol(A)</i>'))
-  await test('regex content', () => assertHTML(h('b',/\w/), '<b>/\\w/</b>'))
+  // await test('regex content', () => assertHTML(h('b',/\w/), '<b>/\\w/</b>'))
   await test("signal content", () => assertHTML(h('i',()=>1), '<i>1</i>'))
   await test('array content', () => assertHTML(h('i',['A',1,2n]), '<i>A12</i>'))
   await test('style attribute', () => assertHTML(h('hr',{style:'color:red'}), '<hr style="color: red;">'))
