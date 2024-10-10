@@ -127,13 +127,13 @@ h(Greet, 'Bob')
 </section>
 
 <section style="display:flex; flex-direction:row; padding: 2rem; background-color: white">
-  <div style="display: flex; flex-direction:column; flex-grow: 2; align-self: stretch; justify-content: space-between">
-      <div style="display: flex; gap: 0.75rem">
+  <div style="display: flex; flex-direction:row; flex-grow: 2; align-self: stretch; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 0.75rem">
           <a href="/">Home</a>
           <a href="/docs/index.html">Quick Guide</a>
           <a href="/docs/modules.html">API Reference</a>
       </div>
-      <div style="display: flex; gap: 0.75rem">
+      <div style="display: flex; flex-direction: column; gap: 0.75rem">
           <a href="https://github.com/wrnrlr/prelude">Github</a>
           <a href="https://npm.com/@wrnrlr/prelude">NPM</a>
           <a href="https://jsr.io/@wrnrlr/prelude">JSR</a>
@@ -145,7 +145,7 @@ h(Greet, 'Bob')
 
 <style >
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Warang+Citi&display=swap');
-@import url('/presets.css')
+@import url('./presets.css');
 
 html {
   font-size: 20px;
