@@ -1,3 +1,4 @@
+.DS_Store
 deno.lock
 public/docs/
 node_modules/
