@@ -17,4 +17,4 @@ jobs:
       - name: Install Deno
         run: curl -fsSL https://deno.land/install.sh | sh
       - name: Run release script
-        run: .deno/bin/deno task release
+        run: ~/.deno/bin/deno task release
