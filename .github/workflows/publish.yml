@@ -16,6 +16,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Deno
         run: curl -fsSL https://deno.land/install.sh | sh
+      - name: Install dependencies
+        run: /home/runner/.deno/bin/deno install
       - name: Run tests
         run: /home/runner/.deno/bin/deno task test
       - name: Run release script
