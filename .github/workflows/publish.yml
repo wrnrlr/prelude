@@ -21,7 +21,7 @@ jobs:
       - name: Run tests
         run: /home/runner/.deno/bin/deno task test
       - name: Setup NPM
-        run: echo "registry=registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /home/runner/.npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /home/runner/.npmrc
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run release script
