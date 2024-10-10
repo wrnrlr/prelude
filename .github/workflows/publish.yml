@@ -16,5 +16,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Deno
         run: curl -fsSL https://deno.land/install.sh | sh
+      - name: Load deno path
+        run: export PATH=$PATH:~/.deno/bin/deno
+      - name: Run tests
+        run: deno task test
       - name: Run release script
-        run: ~/.deno/bin/deno task release
+        run: deno task release
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
