@@ -1,7 +1,7 @@
 import {runtime} from '../src/runtime.ts'
 import {hyperscript} from '../src/hyperscript.ts'
 import {signal,root} from '../src/reactive.ts'
-import {JSDOM} from 'npm:jsdom'
+import {JSDOM} from 'jsdom'
 import {assertEquals} from '@std/assert'
 
 const {window} = new JSDOM('<!DOCTYPE html>', {runScripts:'dangerously'})
