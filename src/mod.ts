@@ -9,7 +9,7 @@ import {type HyperScript, hyperscript} from './hyperscript.ts'
 export {Input,Table} from './components.js'
 export * from './canvas.js'
 
-const r:Runtime = runtime(window as any)
+const r:Runtime|undefined = /*#__PURE__*/ (typeof window === 'object') ? runtime(("window" in window as any)) : undefined
 
 /** h
 @example Element with a single child
@@ -26,9 +26,9 @@ h(Input,{onInput:e => {}})
 ```
 @group Hyperscript
 */
-const h:HyperScript = hyperscript(r)
+const h:HyperScript|undefined = /*#__PURE__*/ r ? hyperscript(r) : undefined
 
-const render = r.render
+const render = /*#__PURE__*/ r?.render
 
 import {signal} from './reactive.ts'
 import {wrap} from './controlflow.js'
