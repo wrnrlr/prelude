@@ -1,8 +1,7 @@
 import {assertEquals,assert} from '@std/assert'
 import {describe,it} from '@std/testing/bdd'
 
-import {signal,effect,sample,batch,memo,context} from '../src/reactive.ts'
-import {wrap} from '../src/controlflow.js'
+import {signal,effect,sample,batch,memo,context,wrap} from '../src/reactive.ts'
 
 describe('signal', () => {
   const a = signal(1)

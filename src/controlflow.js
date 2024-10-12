@@ -1,4 +1,4 @@
-import {signal,sample,batch,memo,root,Signal} from './reactive.ts'
+import {signal,sample,batch,memo,root,wrap,Signal} from './reactive.ts'
 
 /**
 Show children if `when` prop is true, otherwise show `fallback`.
@@ -16,22 +16,7 @@ export function Show(props) {
   })
 }
 
-export function wrap(s,k) {
-  const t = typeof k
-  if (t === 'number') return (...a) => {
-    const b = s()
-    return (a.length) ? s(b.toSpliced(k, 1, a[0])).at(k) : b.at(k)
-  }; else if (t === 'string') return (...a) => {
-    const b = s()
-    return a.length ? s(({ ...b, [k]: a[0] }))[k] : b[k]
-  }; else if (t === 'function') return (...a) => {
-    const i = k(), c = typeof i
-    if (c==='number') return a.length ? s(old => old.toSpliced(i, 1, a[0]))[i] : s()[i]
-    else if (c === 'string') return a => a.length ? s(b => ({...b, [i]:a[0]}))[i] : s()[i]
-    throw new Error('Cannot wrap signal')
-  }
-  throw new Error('Cannot wrap signal')
-}
+
 
 /**
 List

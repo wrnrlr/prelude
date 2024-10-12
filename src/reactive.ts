@@ -145,7 +145,7 @@ abstract class Observer {
 
 class Root extends Observer {
   wrap<T>(fn: RootFn<T>): T {
-    return wrap(() => fn(this.dispose), this, false)!
+    return observe(() => fn(this.dispose), this, false)!
   }
 }
 
@@ -165,7 +165,7 @@ class Computation<T = unknown> extends Observer {
   private run = (): T => {
     this.dispose()
     this.parent?.observers.add(this)
-    return wrap(this.fn, this, true)!
+    return observe(this.fn, this, true)!
   }
 
   update = (): void => {
@@ -279,13 +279,43 @@ export function useContext<T>(context: Context<T>): T {
   return context.get()
 }
 
+type S<T> = Getter<T> | Setter<T>
+
+/**
+@param s Signal
+@param k
+*/
+export function wrap<T>(s:S<Array<T>>, k:number|(()=>number)): S<T>
+export function wrap<T>(s:S<Record<string,T>>, k:string|(()=>string)): S<T>
+export function wrap<T>(s:S<Array<T>>|S<Record<string,T>>, k:number|string|(()=>number)|(()=>string)): S<T> {
+  const t = typeof k
+  if (t === 'number') {
+    return ((...a:T[]) => {
+      const b = (s as Getter<Array<T>>)()
+      return (a.length) ? (s as Setter<Array<T>>)((b as any).toSpliced(k as number, 1, a[0])).at(k as number) : b.at(k as number)
+    }) as S<T>
+  } else if (t === 'string') {
+    return ((...a:T[]) => {
+      const b = (s as Getter<Record<string,T>>)()
+      return (a.length) ? (s as Setter<Record<string,T>>)({...b, [k as string]:a[0]})[k as string] : b[k as string]
+    }) as S<T>
+  } else if (t === 'function')
+    return ((...a:T[]) => {
+      const i = (k as ()=>string|number)(), c = typeof i
+      if (c==='number') return a.length ? (s as Setter<Array<T>>)((old:any) => old.toSpliced(i, 1, a[0]))[i as number] : (s as Getter<Array<T>>)()[i as number]
+        else if (c === 'string') return a.length ? (s as Setter<Record<string,T>>)((b) => ({...b, [i]:a[0]}))[i as string] : (s as Getter<Record<string,T>>)()[i]
+      throw new Error('Cannot wrap signal')
+    }) as S<T>
+  throw new Error('Cannot wrap signal')
+}
+
 export function getOwner(): Observer | undefined {
   return OBSERVER
 }
 
 export function runWithOwner<T>(observer: Observer|undefined, fn: ()=>T):T {
   const tracking = observer instanceof Computation
-  return wrap(fn, observer, tracking)!
+  return observe(fn, observer, tracking)!
 }
 
 /**
@@ -332,7 +362,7 @@ export function batch<T>(fn: Fn<T>):T {
 @group Reactive Primitive
 */
 export function sample<T>(fn: Fn<T>):T {
-  return wrap(fn, OBSERVER, false)!
+  return observe(fn, OBSERVER, false)!
 }
 
 /**
@@ -340,7 +370,7 @@ export function sample<T>(fn: Fn<T>):T {
  @param fn
  @group Reactive Primitive
  */
-function wrap<T>(fn: Fn<T>, observer: Observer | undefined, tracking: boolean ): T|undefined {
+function observe<T>(fn: Fn<T>, observer: Observer | undefined, tracking: boolean ): T|undefined {
   const OBSERVER_PREV = OBSERVER;
   const TRACKING_PREV = TRACKING;
   OBSERVER = observer;
