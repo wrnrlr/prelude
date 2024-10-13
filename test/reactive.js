@@ -1,7 +1,7 @@
 import {assertEquals,assert} from '@std/assert'
 import {describe,it} from '@std/testing/bdd'
 
-import {signal,effect,sample,batch,memo,context,wrap} from '../src/reactive.ts'
+import {signal,effect,untrack,batch,memo,context,useContext,root,wrap} from '../src/reactive.ts'
 
 describe('signal', () => {
   const a = signal(1)
@@ -23,10 +23,10 @@ describe('effect', () => {
   assertEquals(m,3)
 })
 
-describe('sample',()=>{
+describe('untrack',()=>{
   const n = signal(1)
   let m = 0
-  effect(()=>m = sample(n))
+  effect(()=>m = untrack(n))
   assertEquals(m,1)
   n(2)
   assertEquals(m,1)

@@ -1,66 +1,92 @@
-import {signal,sample,batch,memo,root,wrap,Signal} from './reactive.ts'
+import type { Child } from './hyperscript.ts'
+import {signal,untrack,batch,memo,root,Signal} from './reactive.ts'
+
+export type ShowProps<T> = {
+  when: T,
+  children: Child | ((a:()=>T)=>void),
+  fallback: unknown
+}
 
 /**
 Show children if `when` prop is true, otherwise show `fallback`.
 @group Components
 */
-export function Show(props) {
+export function Show<T>(props:ShowProps<T>) {
   const condition = memo(()=>props.when)
   return memo(()=>{
     const c = condition()
     if (c) {
       const child = props.children
       const fn = typeof child === "function" && child.length > 0
-      return fn ? sample(() => child(() => props.when)) : child
+      return fn ? untrack(() => child(() => props.when)) : child
     } else return props.fallback
   })
 }
 
+type ItemHolder = {
+  index:number,
+  indexSetter?:any,
+  value:unknown,
+  valueSetter:any,
+  disposer: any
+}
 
+export type ListProps<T> = {
+  when: T,
+  children: Child | ((a:()=>T)=>void),
+  fallback: unknown
+}
 
 /**
 List
 @group Components
 */
-export function List(props) {
+export function List<T>(props:ListProps<T>) {
   const fallback = "fallback" in props && { fallback: () => props.fallback }
   const list = props.each
-  const cb = props.children.call ? props.children : (v)=>v
-  let items = [], item, unusedItems, i, j, newValue, mapped, oldIndex, oldValue,
+  const cb:any = props.children.call ? props.children : (v)=>v
+  let items:ItemHolder[] = [],
+    item: undefined|ItemHolder,
+    // unusedItems,
+    i: undefined|number,
+    newValue: undefined|number,
+    mapped: number[],
+    oldIndex: number,
+    oldValue: unknown,
     indexes = cb.length > 1 ? [] : null;
-  function newValueGetter(_) { return newValue }
+  function newValueGetter(_:unknown) { return newValue }
   function changeBoth() {
-    item.index = i
-    item.indexSetter?.(i)
-    item.value = newValue
-    item.valueSetter?.(newValueGetter)
+    item!.index = i!
+    item!.indexSetter?.(i)
+    item!.value = newValue!
+    item!.valueSetter?.(newValueGetter)
   }
-  function mapperWithIndexes(disposer) {
+  function mapperWithIndexes(disposer:any) {
     const V = newValue, I = i, Is = signal(I), Vs = signal(V)
-    items.push({value: newValue, index: I, disposer, indexSetter: Is, valueSetter: Vs})
+    items.push({value: newValue, index: I!, disposer, indexSetter: Is, valueSetter: Vs})
     return cb(
-      (...a) => a.length ?
-        sample(()=>list(list=>list.toSpliced(I,1,a[0])))
+      (...a:any[]) => a.length ?
+        untrack(()=>list((list:any)=>list.toSpliced(I,1,a[0])))
         : Vs(),
       ()=>Is())
   }
-  function mapperWithoutIndexes(disposer) {
+  function mapperWithoutIndexes(disposer:any) {
     const V = newValue, I = i, Vs = signal(V)
-    items.push({value: V, index: i, disposer, valueSetter: Vs})
-    return cb((...a) => a.length ?
-      sample(()=>list(list=>list.toSpliced(I,1,a[0])))
+    items.push({value: V, index: i!, disposer, valueSetter: Vs})
+    return cb((...a:any[]) => a.length ?
+      untrack(()=>list((list:any)=>list.toSpliced(I,1,a[0])))
       : Vs())
   }
   const mapper = indexes ? mapperWithIndexes : mapperWithoutIndexes
   return memo(() => {
     const newItems = list() || []
     // (newItems)[$TRACK]; // top level tracking
-    return sample(() => {
+    return untrack(() => {
       const temp = new Array(newItems.length) // new mapped array
-      unusedItems = items.length
+      let unusedItems = items.length
 
       // 1) no change when values & indexes match
-      for (j = unusedItems - 1; j >= 0; --j) {
+      for (let j = unusedItems - 1; j >= 0; --j) {
         item = items[j]
         oldIndex = item.index
         if (oldIndex < newItems.length && newItems[oldIndex] === item.value) {
@@ -75,7 +101,7 @@ export function List(props) {
       // #2 prepare values matcher
       const matcher = new Map()
       const matchedItems = new Uint8Array(unusedItems)
-      for (j = unusedItems - 1; j >= 0; --j) {
+      for (let j = unusedItems - 1; j >= 0; --j) {
         oldValue = items[j].value
         matcher.get(oldValue)?.push(j) ?? matcher.set(oldValue, [j])
       }
@@ -84,19 +110,19 @@ export function List(props) {
       for (i = 0; i < newItems.length; ++i) {
         if (i in temp) continue
         newValue = newItems[i]
-        j = matcher.get(newValue)?.pop() ?? -1
+        let j = matcher.get(newValue)?.pop() ?? -1
         if (j >= 0) {
-          item = items[j]
-          oldIndex = item.index
+          item = items[j as number]
+          oldIndex = item!.index
           temp[i] = mapped[oldIndex]
-          item.index = i
-          item.indexSetter?.(i)
-          matchedItems[j] = 1
+          item!.index = i
+          item!.indexSetter?.(i)
+          matchedItems[j as number] = 1
         }
       }
 
       // 3) reduce unusedItems for matched items
-      for (j = matchedItems.length - 1; j >= 0; --j) {
+      for (let j = matchedItems.length - 1; j >= 0; --j) {
         if (matchedItems[j] && --unusedItems !== j) {
           item = items[j]
           items[j] = items[unusedItems]
@@ -105,9 +131,9 @@ export function List(props) {
       }
 
       // 4) change values when indexes match
-      for (j = unusedItems - 1; j >= 0; --j) {
+      for (let j = unusedItems - 1; j >= 0; --j) {
         item = items[j];
-        oldIndex = item.index;
+        oldIndex = item!.index;
         if (!(oldIndex in temp) && oldIndex < newItems.length) {
           temp[oldIndex] = mapped[oldIndex]
           newValue = newItems[oldIndex]
@@ -141,7 +167,7 @@ export function List(props) {
   })
 }
 
-function disposeList(list) {
+function disposeList(list:any[]) {
   for (let i = 0; i < list.length; i++) {
     list[i]?.disposer()
   }

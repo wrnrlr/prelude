@@ -1,7 +1,7 @@
 export type {Getter,Setter,Fn,EqualsFn,ErrorFn,RootFn,UpdateFn} from './reactive.ts'
-export {signal,effect,sample,batch,memo,root,onMount} from './reactive.ts'
+export {signal,effect,untrack as sample,batch,memo,root,wrap,onMount} from './reactive.ts'
 export {nbsp} from './constants.ts'
-export {wrap,Show,List} from './controlflow.js'
+export {Show,List} from './controlflow.ts'
 export {runtime, type Runtime} from './runtime.ts'
 import {runtime, type Runtime} from './runtime.ts'
 export {hyperscript,type HyperScript,type Child,type Props,type Tag,type View,type Component} from './hyperscript.ts'
@@ -30,8 +30,7 @@ const h:HyperScript|undefined = /*#__PURE__*/ r ? hyperscript(r) : undefined
 
 const render = /*#__PURE__*/ r?.render
 
-import {signal} from './reactive.ts'
-import {wrap} from './controlflow.js'
+import {signal,wrap} from './reactive.ts'
 
 /**
 @group Utils

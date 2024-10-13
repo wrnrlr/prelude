@@ -1,4 +1,4 @@
-import {effect,sample,root} from './reactive.ts'
+import {effect,untrack,root} from './reactive.ts'
 import {SVGNamespace,SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
 import type {Window,Mountable,Elem,Node} from './constants.ts'
 
@@ -54,7 +54,7 @@ export function runtime(window:Window):Runtime {
   function spread(node:Elem, props:any = {}, skipChildren:boolean) {
     const prevProps:any = {}
     if (!skipChildren) effect(() => (prevProps.children = insertExpression(node, props.children, prevProps.children)))
-    effect(() => (props.ref?.call ? sample(() => props.ref(node)) : (props.ref = node)))
+    effect(() => (props.ref?.call ? untrack(() => props.ref(node)) : (props.ref = node)))
     effect(() => assign(node, props, true, prevProps, true))
     return prevProps
   }

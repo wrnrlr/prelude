@@ -282,6 +282,7 @@ export function useContext<T>(context: Context<T>): T {
 type S<T> = Getter<T> | Setter<T>
 
 /**
+
 @param s Signal
 @param k
 */
@@ -319,11 +320,11 @@ export function runWithOwner<T>(observer: Observer|undefined, fn: ()=>T):T {
 }
 
 /**
- Execute the function `fn` only once. Implemented as an {@link effect} wrapping a {@link sample}.
+ Execute the function `fn` only once. Implemented as an {@link effect} wrapping a {@link untrack}.
  @group Reactive Primitive
  */
 export function onMount(fn: () => void) {
-  effect(() => sample(fn));
+  effect(() => untrack(fn));
 }
 
 export function onCleanup(fn: Fn):void {
@@ -357,19 +358,20 @@ export function batch<T>(fn: Fn<T>):T {
 }
 
 /**
+Get the value of a signal without subscribing to future updates.
 
 @param fn
+@returns value returned from `fn`
 @group Reactive Primitive
 */
-export function sample<T>(fn: Fn<T>):T {
+export function untrack<T>(fn: ()=>T):T {
   return observe(fn, OBSERVER, false)!
 }
 
-/**
+export function resource() {
 
- @param fn
- @group Reactive Primitive
- */
+}
+
 function observe<T>(fn: Fn<T>, observer: Observer | undefined, tracking: boolean ): T|undefined {
   const OBSERVER_PREV = OBSERVER;
   const TRACKING_PREV = TRACKING;

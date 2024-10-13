@@ -1,4 +1,4 @@
-import {sample} from './reactive.ts'
+import {untrack} from './reactive.ts'
 import {Properties,BooleanAttributes,DelegatedEvents,DOMElements, type Mountable} from './constants.ts'
 import type {Runtime,$RUNTIME} from './runtime.ts'
 
@@ -115,7 +115,7 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
           dynamicProperty(props as any, k)
         }
       }
-      e = sample(()=>(element as Component<T&{children:K}>)(props as T&{children:K}))
+      e = untrack(()=>(element as Component<T&{children:K}>)(props as T&{children:K}))
       ret = () => e
     } else {
       const tag = parseTag(element as Tag)
