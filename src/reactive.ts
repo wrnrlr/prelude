@@ -279,7 +279,7 @@ export function useContext<T>(context: Context<T>): T {
   return context.get()
 }
 
-type S<T> = Getter<T> | Setter<T>
+export type S<T> = Getter<T> | Setter<T>
 
 /**
 
