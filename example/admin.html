@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<title>Counter</title>
+
+<script type="module">
+
+import {h,signal,render,Router} from '../src/mod.ts'
+
+function Input(props) {
+  const onInput = e => props.value(parseInt(e.target.value))
+  return h('input',{type:'number',value:props.value,onInput})
+}
+
+function App() {
+  const count = signal(1)
+  return [
+    h('button',{onClick(e){count(i=>i-1)}},'-'),
+    h(Input,{value:()=>count}),
+    h('button',{onClick(e){count(i=>i+1)}},'+')
+  ]
+}
+
+function Nav(props) {
+  return [
+    h('ul',[
+      h('li',h('a',{href:'/example/admin.html#'},'Home')),
+      h('li',h('a',{href:'/example/admin.html#a'},'HomeA')),
+      h('li',h('a',{href:'/example/admin.html#user'},'User')),
+      h('li',h('a',{href:'/example/admin.html#post'},'Post'))
+    ]),
+    props.children
+  ]
+}
+
+function Home(props) {
+  return h(Nav,h('h1','Home'))
+}
+
+function HomeA(props) {
+  return h(Nav,h('h1','A'))
+}
+
+function User(props) {
+  return h(Nav,h('h1','User'))
+}
+
+function Post(props) {
+  return h(Nav,h('h1','Home'))
+}
+
+render(h(Router,[
+  {path:'/', component:Home},
+  {path:'/a', component:HomeA},
+  {path:'/user', component:()=>'Users'},
+  {path:'/post', component:()=>'Post'},
+  {path:'/user/:id', component:()=>'User #'}
+]), document.body)
+
+</script>
