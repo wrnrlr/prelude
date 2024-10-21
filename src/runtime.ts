@@ -22,7 +22,7 @@ export type Runtime = {
 }
 
 /**
-
+Create `Runtime` for `window`
 @param window
 @group Internal
 */
