@@ -6,10 +6,11 @@ export {runtime, type Runtime} from './runtime.ts'
 import {runtime, type Runtime} from './runtime.ts'
 export {hyperscript,type HyperScript,type Child,type Props,type Tag,type View,type Component} from './hyperscript.ts'
 import {type HyperScript, hyperscript} from './hyperscript.ts'
-export {Input,Table} from './components.js'
-export * from './canvas.js'
+export {Router} from './router.js'
+// export {Input,Table} from './components.js'
+// export * from './canvas.js'
 
-const r:Runtime|undefined = /*#__PURE__*/ (typeof window === 'object') ? runtime(("window" in window as any)) : undefined
+const r:Runtime|undefined = /*#__PURE__*/ (typeof window === 'object') ? runtime(window) : undefined
 
 /** h
 @example Element with a single child
