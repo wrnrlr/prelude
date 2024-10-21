@@ -16,24 +16,18 @@ export function Router(props) {
   const params = signal(null)
   const search = signal(null)
   onMount(()=>{
-    console.log('mounting')
     window.addEventListener("popstate", (event) => {
       batch(()=>{
         const hash = parseHash(document.location.hash)
-        console.log('pop hash', hash.pathname, navigate().pathname)
-        // navigate(hash)
+        navigate(hash)
       })
     })
-    console.log('2')
     const hash = parseHash(document.location.hash)
-    console.log('load hash', hash.pathname)
     navigate(hash)
   })
   const children = memo(() => {
     let location = navigate()
-    console.log({location})
     const route = routes.find(r=>r.path===location.pathname)
-    console.log(route)
     return route?.component() || NotFound
   })
   return Ctx({navigate,params,search,children:()=>children})
@@ -43,12 +37,10 @@ function parseHash(s) {
   const res = {pathname:'/'}
   if (s[0]!=='#') return res
   s = s.substr(1)
-  console.log('a2', s, s.indexOf('?'))
 
   let i = s.indexOf('?')
-  console.log('a3',i)
   if (i===-1) i = s.length
-  res.pathname = s.substr(0,i)
+  res.pathname += s.substr(0,i)
   if (res.pathname==='') res.pathname = '/'
   return res
 }
