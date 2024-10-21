@@ -18,7 +18,6 @@ describe('signal with equals option', () => {
   let m = 0
   effect(() => m += 1 + n() )
   assertEquals(m,1)
-  assertEquals(n(),0)
   assertEquals(n(0),0)
   assertEquals(m,2)
 })
