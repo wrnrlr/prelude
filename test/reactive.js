@@ -13,6 +13,16 @@ describe('signal', () => {
   assertEquals(a(null),null)
 })
 
+describe('signal with equals option', () => {
+  const n = signal(0,{equals:false})
+  let m = 0
+  effect(() => m += 1 + n() )
+  assertEquals(m,1)
+  assertEquals(n(),0)
+  assertEquals(n(0),0)
+  assertEquals(m,2)
+})
+
 describe('effect', () => {
   const n = signal(1)
   let m = 0
