@@ -7,6 +7,7 @@ import {runtime, type Runtime} from './runtime.ts'
 export {hyperscript,type HyperScript,type Child,type Props,type Tag,type View,type Component} from './hyperscript.ts'
 import {type HyperScript, hyperscript} from './hyperscript.ts'
 export {Router} from './router.js'
+export {resource,makeAbortable,abortable} from './resource.js'
 // export {Input,Table} from './components.js'
 // export * from './canvas.js'
 

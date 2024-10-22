@@ -368,10 +368,6 @@ export function untrack<T>(fn: ()=>T):T {
   return observe(fn, OBSERVER, false)!
 }
 
-export function resource() {
-
-}
-
 function observe<T>(fn: Fn<T>, observer: Observer | undefined, tracking: boolean ): T|undefined {
   const OBSERVER_PREV = OBSERVER;
   const TRACKING_PREV = TRACKING;
