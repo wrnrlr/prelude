@@ -32,15 +32,15 @@ const h:HyperScript|undefined = /*#__PURE__*/ r ? hyperscript(r) : undefined
 
 const render = /*#__PURE__*/ r?.render
 
-import {signal,wrap} from './reactive.ts'
+// import {signal,wrap} from './reactive.ts'
 
-/**
-@group Utils
-*/
-export function $(a:any,b:any):any {
-  const t = typeof a
-  if (t==='function') return wrap(a,b)
-  else return signal(a,b)
-}
+// /**
+// @group Utils
+// */
+// export function $(a:any,b:any):any {
+//   const t = typeof a
+//   if (t==='function') return wrap(a,b)
+//   else return signal(a,b)
+// }
 
 export {h,render}
