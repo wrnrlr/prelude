@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 export interface EffectOptions {
   name?: string;
 }

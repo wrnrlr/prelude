@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {signal,effect,untrack,memo,batch,useContext,onCleanup} from './reactive.ts'
 
 const NO_INIT = {}

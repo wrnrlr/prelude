@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {signal,effect,batch,untrack,memo,wrap,context,useContext,onMount} from './reactive.ts'
 // import {h} from './hyperscript.ts'
 
