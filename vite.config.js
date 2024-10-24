@@ -1,6 +1,5 @@
 import * as path from '@std/path'
 import * as fs from '@std/fs'
-import {marked} from 'marked'
 import {defineConfig} from 'vite'
 import { Application, TSConfigReader, TypeDocReader } from 'typedoc'
 
