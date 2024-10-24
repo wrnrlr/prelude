@@ -37,6 +37,7 @@ export default defineConfig(({ command, mode }) => {
     define,
     build,
     optimizeDeps,
-    assetsInclude
+    assetsInclude,
+    base: mode==='production' ? '/prelude' : undefined
   }
 })
