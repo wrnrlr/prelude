@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck:
 export type {Getter,Setter,Fn,EqualsFn,ErrorFn,RootFn,UpdateFn} from './reactive.ts'
 export {signal,effect,untrack as sample,batch,memo,root,wrap,onMount} from './reactive.ts'
 export {nbsp} from './constants.ts'

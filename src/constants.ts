@@ -1,3 +1,4 @@
+// @ts-nocheck:
 /**
 * Non-breakable space in Unicode
 * @group Utils

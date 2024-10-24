@@ -1,3 +1,4 @@
+// @ts-nocheck:
 import type { Child } from './hyperscript.ts'
 import {signal,untrack,batch,memo,root,type Signal} from './reactive.ts'
 

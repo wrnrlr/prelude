@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck:
 import {effect,untrack,root} from './reactive.ts'
 import {SVGNamespace,SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
 import type {Window,Mountable,Elem,Node} from './constants.ts'

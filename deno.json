@@ -26,6 +26,6 @@
     "clean": "rm -rf node_modules/ dist/"
   },
   "lint": {
-    "include": []
+    "include": ["src"]
   }
 }

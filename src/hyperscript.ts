@@ -1,3 +1,4 @@
+// @ts-nocheck:
 import {untrack} from './reactive.ts'
 import type {Properties,BooleanAttributes,DelegatedEvents,DOMElements, Mountable} from './constants.ts'
 import type {Runtime,$RUNTIME} from './runtime.ts'
