@@ -46,7 +46,7 @@ jobs:
       #   run: deno task typedoc || true
 
       - name: Typedoc
-        run: ./node_modules/typedoc/bin/typedoc
+        run: ./node_modules/.bin/typedoc
 
       - name: Build
         run: deno task build
