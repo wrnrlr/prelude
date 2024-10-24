@@ -51,8 +51,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          folder: './dist'
 
       # - name: Setup NPM
       #   run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /home/runner/.npmrc
