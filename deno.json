@@ -13,8 +13,7 @@
     "@std/path": "jsr:@std/path@^1.0.6",
     "@std/testing": "jsr:@std/testing@^0.225.3",
     "jsdom": "npm:jsdom",
-    "typedoc": "npm:typedoc",
-    "typedoc-plugin-markdown": "npm:typedoc-plugin-markdown",
+    "typedoc": "npm:typedoc@^0.26.6",
     "vite": "npm:vite@^5.4.9"
   },
   "tasks": {
