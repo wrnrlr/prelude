@@ -3,26 +3,52 @@ name: Publish
 on:
   push:
     branches:
-      - release
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # The OIDC ID token is used for authentication with JSR.
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
+
       - name: Install Deno
         run: curl -fsSL https://deno.land/install.sh | sh
+
       - name: Install dependencies
         run: /home/runner/.deno/bin/deno install
+
       - name: Run tests
         run: /home/runner/.deno/bin/deno task test
-      - name: Setup NPM
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /home/runner/.npmrc
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Run release script
-        run: /home/runner/.deno/bin/deno task release
+
+      - name: Build
+        run: /home/runner/.deno/bin/deno task build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          folder: './dist'
+
+      # - name: Setup NPM
+      #   run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /home/runner/.npmrc
+      #   env:
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Run release script
+      #   run: /home/runner/.deno/bin/deno task release
