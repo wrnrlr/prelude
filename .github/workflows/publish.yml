@@ -34,8 +34,8 @@ jobs:
       - name: Run tests
         run: deno task test
 
-      # - name: Typedoc
-      #   run: deno task typedoc
+      - name: Typedoc
+        run: deno task typedoc
 
       - name: Build
         run: deno task build
