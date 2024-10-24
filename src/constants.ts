@@ -13,7 +13,7 @@ declare type DocumentFragment = any
 export declare type Node = any
 
 export type Mountable = Elem | Document | ShadowRoot | DocumentFragment | Node;
-type ExpandableNode = Node & { [key: string]: any };
+type ExpandableNode = Node & { [key: string]: unknown };
 
 // type Expect<T extends true> = T;
 // type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false;

@@ -4,7 +4,7 @@
   "useHostedBaseUrlForAbsoluteLinks": false,
   "out":"./public/docs/",
   "compilerOptions": {
-    "strict": true,
+    "strict": false,
     "allowJs": true,
     "checkJs": false,
     "noImplicitThis": false,

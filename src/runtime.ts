@@ -344,10 +344,10 @@ function style(node:Node, value:any, prev:any) {
 }
 
 function toPropertyName(name:string):string {
-  return name.toLowerCase().replace(/-([a-z])/g, (_:any, w:string) => w.toUpperCase());
+  return name.toLowerCase().replace(/-([a-z])/g, (_:unknown, w:string) => w.toUpperCase());
 }
 
-function toggleClassKey(node:any, key:any, value:any) {
+function toggleClassKey(node:Node, key:string, value:boolean) {
   const classNames = key.trim().split(/\s+/)
   for (let i = 0, nameLen = classNames.length; i < nameLen; i++)
     node.classList.toggle(classNames[i], value)
@@ -360,13 +360,13 @@ function appendNodes(parent:Node, array:Node[], marker:null|Node = null) {
 
 // Slightly modified version of: https://github.com/WebReflection/udomdiff/blob/master/index.js
 function reconcileArrays(parentNode:Node, a:Node[], b:Node[]) {
-  let bLength = b.length,
-    aEnd = a.length,
+  const bLength = b.length
+  let aEnd = a.length,
     bEnd = bLength,
     aStart = 0,
     bStart = 0,
-    after = a[aEnd - 1].nextSibling,
     map:Map<Node,number>|null = null;
+  const after = a[aEnd - 1].nextSibling
 
   while (aStart < aEnd || bStart < bEnd) {
     // common prefix

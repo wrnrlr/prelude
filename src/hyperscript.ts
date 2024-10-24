@@ -1,5 +1,5 @@
 import {untrack} from './reactive.ts'
-import {Properties,BooleanAttributes,DelegatedEvents,DOMElements, type Mountable} from './constants.ts'
+import type {Properties,BooleanAttributes,DelegatedEvents,DOMElements, Mountable} from './constants.ts'
 import type {Runtime,$RUNTIME} from './runtime.ts'
 
 const ELEMENT: unique symbol = Symbol(), {isArray} = Array
@@ -89,7 +89,7 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
     let children: Child
 
     if (typeof second === 'object' && !isArray(second)) {
-      children = third || [];
+      children = (third as Child) || [];
       props = ((second ?? {}) as T&{children:K})
     } else {
       children = (second as Child) || []
@@ -160,12 +160,12 @@ function detectMultiExpression(list:any):boolean {
 // ^([a-zA-Z]\w*)?(#[a-zA-Z][-\w]*)?(.[a-zA-Z][-\w]*)*
 function parseTag(s:string):{name:string,id?:string,classes:string[]} {
   const classes:string[] = [];
-  let name:string, id = undefined, i:number
+  let id:string|undefined = undefined, i:number
 
   i = s.indexOf('#')
   if (i===-1) i = s.indexOf('.')
   if (i===-1) i = s.length
-  name = s.slice(0, i) || 'div'
+  const name = s.slice(0, i) || 'div'
   s = s.slice(i)
 
   if (s[0]==='#') {

@@ -1,5 +1,5 @@
 import type { Child } from './hyperscript.ts'
-import {signal,untrack,batch,memo,root,Signal} from './reactive.ts'
+import {signal,untrack,batch,memo,root,type Signal} from './reactive.ts'
 
 export type ShowProps<T> = {
   when: T,
@@ -53,8 +53,8 @@ export function List<T>(props:ListProps<T>) {
     newValue: undefined|number,
     mapped: number[],
     oldIndex: number,
-    oldValue: unknown,
-    indexes = cb.length > 1 ? [] : null;
+    oldValue: unknown
+  const indexes = cb.length > 1 ? [] : null;
   function newValueGetter(_:unknown) { return newValue }
   function changeBoth() {
     item!.index = i!
@@ -74,7 +74,7 @@ export function List<T>(props:ListProps<T>) {
   function mapperWithoutIndexes(disposer:any) {
     const V = newValue, I = i, Vs = signal(V)
     items.push({value: V, index: i!, disposer, valueSetter: Vs})
-    return cb((...a:any[]) => a.length ?
+    return cb((...a:unknown[]) => a.length ?
       untrack(()=>list((list:any)=>list.toSpliced(I,1,a[0])))
       : Vs())
   }
@@ -111,7 +111,7 @@ export function List<T>(props:ListProps<T>) {
       for (i = 0; i < newItems.length; ++i) {
         if (i in temp) continue
         newValue = newItems[i]
-        let j = matcher.get(newValue)?.pop() ?? -1
+        const j = matcher.get(newValue)?.pop() ?? -1
         if (j >= 0) {
           item = items[j as number]
           oldIndex = item!.index
