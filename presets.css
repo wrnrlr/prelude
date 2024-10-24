@@ -332,12 +332,12 @@ ul {padding:0; list-style:none; text-indent:0; list-style-type:none}
 .items-stretch {align-items: stretch}
 .items-baseline {align-items: baseline}
 
-.self-auto {aligh-self:auto}
-.self-start {aligh-self:start}
-.self-center {aligh-self:center}
-.self-end {aligh-self:end}
-.self-stretch{aligh-self:stretch}
-.self-baseline {aligh-self:baseline}
+.self-auto {align-self:auto}
+.self-start {align-self:start}
+.self-center {align-self:center}
+.self-end {align-self:end}
+.self-stretch{align-self:stretch}
+.self-baseline {align-self:baseline}
 
 .grow {flex-grow: 1}
 .grow-0 {flex-grow: 0}
