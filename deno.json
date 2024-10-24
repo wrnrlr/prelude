@@ -21,7 +21,8 @@
     "dev": "deno run -A npm:vite@^5.4.9",
     "test": "deno test -A ./test/*.[jt]s",
     "docs": "deno run -A npm:typedoc",
-    "build": "deno run -A npm:typedoc && deno run -A npm:vite@^5.4.9 build",
+    "typedoc": "deno run -A npm:typedoc",
+    "build": "deno run -A npm:vite@^5.4.9 build",
     "release": "deno publish --allow-slow-types --allow-dirty && npm publish --access public",
     "clean": "rm -rf node_modules/ dist/"
   }
