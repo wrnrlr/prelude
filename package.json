@@ -9,5 +9,8 @@
     "example": "example",
     "test": "test"
   },
-  "scripts": {}
+  "scripts": {},
+  "dependencies": {
+    "vite": "^5.4.10"
+  }
 }
