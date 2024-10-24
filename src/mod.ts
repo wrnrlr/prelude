@@ -11,7 +11,7 @@ export {resource,makeAbortable,abortable} from './resource.js'
 // export {Input,Table} from './components.js'
 // export * from './canvas.js'
 
-const r:Runtime|undefined = /*#__PURE__*/ (typeof window === 'object') ? runtime(window) : undefined
+const r:Runtime|undefined = /*#__PURE__*/ (typeof window === 'object') ? runtime(window as any) : undefined
 
 /** h
 @example Element with a single child

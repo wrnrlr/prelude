@@ -33,6 +33,7 @@ type ItemHolder = {
 
 export type ListProps<T> = {
   when: T,
+  each: any,
   children: Child | ((a:()=>T)=>void),
   fallback: unknown
 }
@@ -44,7 +45,7 @@ List
 export function List<T>(props:ListProps<T>) {
   const fallback = "fallback" in props && { fallback: () => props.fallback }
   const list = props.each
-  const cb:any = props.children.call ? props.children : (v)=>v
+  const cb:any = (props.children as any)?.call ? props.children : (v:any)=>v
   let items:ItemHolder[] = [],
     item: undefined|ItemHolder,
     // unusedItems,
