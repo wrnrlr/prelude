@@ -6,7 +6,8 @@
   "description": "A signal based frontend library with fine-grained reactivity",
   "main": "./src/mod.ts",
   "scripts": {},
-  "devDependencies": {
-    "typedoc": "^0.26.10"
+  "devDependencies": { "typedoc": "^0.26.10" },
+  "dependencies": {
+    "marked": "^14.1.3"
   }
 }
