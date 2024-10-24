@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "exports": "./src/mod.ts",
   "compilerOptions": {
-    "strict": true,
+    "strict": false,
     "checkJs": false,
     "noImplicitThis": false,
     "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]

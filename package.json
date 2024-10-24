@@ -5,12 +5,8 @@
   "author": "Werner Laurensse",
   "description": "A signal based frontend library with fine-grained reactivity",
   "main": "./src/mod.ts",
-  "directories": {
-    "example": "example",
-    "test": "test"
-  },
   "scripts": {},
-  "dependencies": {
-    "vite": "^5.4.10"
+  "devDependencies": {
+    "typedoc": "^0.26.10"
   }
 }

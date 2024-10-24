@@ -25,8 +25,16 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Install dependencies
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Deno install
         run: deno install
+
+      - name: NPM install
+        run: npm install
 
       # - name: Lint
       #   run: deno lint
@@ -34,8 +42,11 @@ jobs:
       - name: Run tests
         run: deno task test
 
+      # - name: Typedoc
+      #   run: deno task typedoc || true
+
       - name: Typedoc
-        run: deno task typedoc || true
+        run: ./node_modules/typedoc/bin/typedoc
 
       - name: Build
         run: deno task build
