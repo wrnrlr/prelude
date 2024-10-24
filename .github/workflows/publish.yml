@@ -35,7 +35,7 @@ jobs:
         run: deno task test
 
       - name: Typedoc
-        run: deno task typedoc
+        run: deno task typedoc || true
 
       - name: Build
         run: deno task build

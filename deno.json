@@ -19,8 +19,7 @@
   "tasks": {
     "dev": "deno run -A npm:vite@^5.4.9",
     "test": "deno test -A ./test/*.[jt]s",
-    "docs": "deno run -A npm:typedoc",
-    "typedoc": "deno run -A npm:typedoc --options typedoc.jsonc",
+    "typedoc": "deno run -A npm:typedoc@^0.26.6 --options typedoc.jsonc",
     "build": "deno run -A npm:vite@^5.4.9 build --mode production",
     "release": "deno publish --allow-slow-types --allow-dirty && npm publish --access public",
     "clean": "rm -rf node_modules/ dist/"
