@@ -41,6 +41,7 @@ summary {display: list-item;}
 a {text-decoration: none; color: black;}
 a:visited{color: black;}
 ul {padding:0; list-style:none; text-indent:0; list-style-type:none}
+iframe {border: none}
 
 :root {
   --slate-50: #f8fafc;
@@ -438,6 +439,12 @@ ul {padding:0; list-style:none; text-indent:0; list-style-type:none}
 .gap-8 {gap: 2rem}
 .gap-9 {gap: 2.25rem}
 .gap-10 {gap: 2.5rem}
+.gap-10 {gap: 2.75rem}
+.gap-11 {gap: 3rem}
+.gap-12 {gap: 3.25rem}
+.gap-13 {gap: 3.5rem}
+.gap-14 {gap: 3.75rem}
+.gap-15 {gap: 4rem}
 
 .text-xs {font-size: 0.75rem; line-height: 1rem}
 .text-sm {font-size: 0.875rem; line-height: 1.25rem}
@@ -452,3 +459,17 @@ ul {padding:0; list-style:none; text-indent:0; list-style-type:none}
 .text-7xl {font-size: 4.5rem; line-height: 1}
 .text-8xl {font-size: 6rem; line-height: 1}
 .text-9xl {font-size: 8rem; line-height: 1}
+
+.font-weight-100 {font-weight: 100}
+.font-weight-200 {font-weight: 200}
+.font-weight-300 {font-weight: 300}
+.font-weight-400 {font-weight: 400}
+.font-weight-500 {font-weight: 500}
+.font-weight-600 {font-weight: 600}
+.font-weight-700 {font-weight: 700}
+.font-weight-800 {font-weight: 800}
+.font-weight-900 {font-weight: 900}
+
+.border-radius {border-radius: 1}
+
+.cursor-pointer {cursor:pointer}

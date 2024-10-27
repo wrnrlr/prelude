@@ -5,5 +5,10 @@
   "author": "Werner Laurensse",
   "description": "A signal based frontend library with fine-grained reactivity",
   "main": "./src/mod.ts",
-  "scripts": {}
+  "scripts": {},
+  "dependencies": {
+    "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "codemirror": "^6.0.1"
+  }
 }

@@ -17,10 +17,11 @@
   <div class="flex items-center gap-5">
     <a href="docs/index.html">Get Started</a>
     <a href="docs/modules.html">API</a>
-    <a href="https://github.com/wrnrlr/prelude">Github</a>
-    <!-- <a class="button" href="/#examples">Playground</a> -->
+    <button class="button playground">Playground</button>
   </div>
 </nav>
+
+<div id="playground"></div>
 
 <main>
 <section class="flex column items-center py-8">
@@ -30,13 +31,13 @@
     <span class="text-3xl">A signal-based web library that lets you <br> develop in a familiar functional style</span>
     <div class="flex gap-4">
         <a class="button text-xl" href="docs/index.html">Get Started</a>
-        <a class="button text-xl bg-neutral-200" href="docs/modules.html">API Reference</a>
+        <button class="button text-xl playground">Open Playground</button>
     </div>
   </div>
 </section>
 
 <section class="flex column items-center py-8 gap-8">
-  <h1 class="center text-5xl">It's just JavaScript!</h1>
+  <h1 class="center text-5xl">Just write JavaScript!</h1>
   <p class="center text-2xl">Instead of JSX, Prelude uses HyperScript,<br>
       a DSL that lets you defined components in JavaScript.</p>
   <div class="flex items-center content-center gap-8">
@@ -61,6 +62,13 @@ render(Counter, window.counter)</code></pre>
         that handles <code class="language-js">onclick</code> events and displays the counter value.</p>
     <p>Prelude has fine-grained reactivity and will only update<br>those parts of the DOM that needs to be changed.</p>
   </div>
+</section>
+
+<section class="flex column items-center py-8">
+    <p class="center text-2xl">Try in your Browser</p>
+    <div class="flex items-center gap-4 pt-6">
+      <button class="button text-md playground">Open Playground</button>
+    </div>
 </section>
 
 <footer class="flex px-2 py-2 gap-8" style="background-color: var(--neutral-100);">
@@ -122,6 +130,24 @@ section:nth-child(1) { background-color: var(--neutral-100); }
 section > .wrapper { width: 700px }
 section > .wide.wrapper { width: 900px }
 
+button.playground {
+    color: var(--neutral-50);
+    background-color: var(--green-600);
+    text-shadow: 0px 0px 3px var(--emrald-800);
+    cursor: pointer;
+}
+
+#playground {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: var(--neutral-50);
+}
+
+#playground.playing {
+    display: flex;
+}
+
 .prelude {
   color: var(--neutral-700);
   font-weight: norma;
@@ -174,10 +200,15 @@ a.card {
   text-decoration: none;
 }
 
+.w-half { width: 50% }
+.CodeMirror { height: 100%; }
 </style>
 
 <script type="module">
-import {h, signal, render} from './src/mod.ts'
+import {h, signal, effect, untrack, resource, render, onMount, Show, List, Router} from './src/mod.ts'
+import {EditorView, basicSetup} from "codemirror"
+import {javascript} from "@codemirror/lang-javascript"
+import {html} from "@codemirror/lang-html"
 
 function Counter() {
   const n = signal(1)
@@ -186,4 +217,142 @@ function Counter() {
 }
 
 render(Counter, window.counter)
+
+const playing = signal(true)
+const examples = [
+  {name:'counter.html',title:'Counter'},
+  {name:'todo.html',title:'Todo'},
+  {name:'admin.html',title:'Admin'}
+]
+
+// <svg viewBox="0 0 709 709" style="width: 100px; --color:var(--neutral-700)">
+// <use xlink:href="./logo.svg#loop"></use></svg>
+function PreludeLogo() {
+  return h('svg', {viewBox:'0 0 709 709',style:'width: 50px; --color:var(--neutral-700)'},
+    h('use', {'xlink:href':'./logo.svg#loop'}))
+}
+
+// <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z"/></svg>
+function MenuIcon() {
+  return h('svg', {xmlns:'http://www.w3.org/2000/svg', viewBox:'0 0 448 512',style:'width: 20px; --color:var(--neutral-700)'},
+    h('path',{d:'M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z'}))
+}
+
+// <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+function CloseIcon() {
+  return h('svg', {xmlns:'http://www.w3.org/2000/svg', viewBox:'0 0 384 512',style:'width: 20px; --color:var(--neutral-700)'},
+    h('path',{d:'M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z'}))
+}
+
+function Editor(props) {
+  const theme = EditorView.baseTheme({
+    'cm-editor': {display:'flex', height:'100%',backgroundColor:'lightpink'},
+    // '&': { maxHeight: '200px' },
+    '.cm-gutter,.cm-content': {minHeight: '100px', height:'100%'},
+    '.cm-scroller': {overflow: 'auto', height:'100%', flexGrow:1, backgroundColor:'' },
+  })
+  const ref = e => {
+    let updateListenerExtension = EditorView.updateListener.of((update) => {
+      if (update.docChanged) {
+        console.log('doc change',update.state.doc.toString())
+        props.value(update.state.doc.toString())
+        // Handle the event here
+      }
+    });
+    let editor = new EditorView({
+      doc:props.value(),
+      extensions: [basicSetup, theme, html(), updateListenerExtension],
+      parent: e
+    })
+    effect(()=>{
+      console.log('effective!')
+      props.src(),props.file()
+      const insert = untrack(props.value)
+      editor.dispatch({changes: {from: 0, to: editor.state.doc.length, insert}})
+    })
+  }
+  return h('.p-1.w-half.h-full',{ref,style:'background-color:var(--stone-100)'})
+}
+
+function Preview(props) {
+  return h('iframe.w-half',{style:'background-color:var(--gray-300)',srcdoc:props.value},'Hello')
+}
+
+function TopMenu(props) {
+  return h('.flex.p-2.gap-2',{style:'background-color:var(--neutral-200)'},[
+    h(Show, {when:()=>!props.show()}, [
+      h(PreludeLogo),
+      h('button.button', {onClick:e=>(props.show(b=>!b))},h(MenuIcon)),
+    ]),
+    h('input.grow', {value:'Example #1'}),
+    h('button.button', {onClick:e=>(props.playing(b=>!b))},h(CloseIcon))])
+}
+
+function SrcMenu(props) {
+  effect(()=>console.log(props.src()===props.name))
+  return h('.flex.column.gap-1',[
+    h('button.flex.font-weight-600', {onClick:e=>props.src(props.name)}, props.title),
+    h(Show,{when:()=>props.src()===props.name},
+      h('.flex.column.gap-1.pl-2',
+        h(List, {each:()=>props.items}, (value,i) =>
+          h('button.flex',{onClick:e=>props.file(value().name)},h('',()=>value().title))
+        )
+      )
+    )])
+}
+
+function SideMenu(props) {
+  return h('.flex.column.px-2.py-2.gap-4',{style:'background-color:var(--neutral-300)'},[
+    h('.flex', [
+      h(PreludeLogo),
+      h('button.button', {onClick:e=>(props.show(b=>!b)),style:'background-color:var(--neutral-300)'}, h(CloseIcon)),
+    ]),
+    h('.flex.column.gap-2', [
+      h(SrcMenu,{name:'example',title:'Example',file:()=>props.file,items:()=>()=>examples,src:()=>props.src}),
+      h(SrcMenu,{name:'local',title:'Local Storage',file:()=>props.file,items:()=>props.local,src:()=>props.src})
+    ])
+  ])
+}
+
+function Playground() {
+  const show = signal(true)
+  const src = signal('example')
+  const file = signal('counter.html')
+  const local = signal(examples)
+  const exs = ()=>examples
+  const content = signal('<!DOCTYPE html>\n<h1>Hello</h1>')
+  effect(()=>{
+    const s = src()
+  })
+  const doodle = resource(()=>({src:src(),file:file()}), async (r) => {
+    console.log('doodle',r)
+    if (r.src==='example') {
+      const html = await (await fetch('/example/'+r.file)).text()
+      content(html)
+    } else {
+      console.log('local')
+    }
+  })
+  const ref = e => {
+    Array.from(document.querySelectorAll('button.playground'))
+      .map(n => n.addEventListener('click', _ => playing(b=>!b)))
+    const main = document.querySelector('main'), nav = document.querySelector('nav')
+    const show = () => (e.classList.add('flex'),e.classList.remove('hidden'), main.classList.add('hidden'), nav.classList.add('hidden'), nav.classList.remove('flex'))
+    const hide = () => (e.classList.remove('flex'),e.classList.add('hidden'), main.classList.remove('hidden'), nav.classList.remove('hidden'), nav.classList.add('flex'))
+    effect(() => playing() ? show() : hide())
+  }
+  return h('.flex.w-full.h-full',{ref,style:'background-color:var(--neutral-100)'},[
+    h(Show, {when:show}, h(SideMenu, {show:()=>show,src:()=>src,file:()=>file,local:()=>local})),
+    h('.flex.column.grow.items-stretch', [
+      h(TopMenu, {playing:()=>playing, show:()=>show}),
+      h('.flex.grow', [
+        h(Editor,{value:()=>content,src:()=>src,file:()=>file}),
+        h(Preview,{value:()=>content})
+      ])
+    ])
+  ])
+}
+
+render(Playground, window.playground)
+
 </script>
