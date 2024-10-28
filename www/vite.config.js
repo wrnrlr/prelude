@@ -39,7 +39,8 @@ export default defineConfig(({ command, mode }) => {
     'index': path.join(root, 'index.html'),
     'playground': path.join(root, 'playground.html'),
   }
-  if (command==='serve' && fs.existsSync('docs/index.html')) input[docs] = path.join(root, 'docs/index.html')
+  if (fs.existsSync('docs/index.html')) input[docs] = path.join(root, 'docs/index.html')
+
   build = {
     // lib: { entry: 'src/mod.ts', formats: ['es'] },
     rollupOptions: {
