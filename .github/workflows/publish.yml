@@ -44,7 +44,7 @@ jobs:
         run: deno task test
 
       - run: sudo apt-get install tree
-      - run: tree www/dist
+      - run: tree 'www/dist'
 
       # - name: Typedoc
       #   run: deno task typedoc || true
