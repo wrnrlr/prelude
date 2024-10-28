@@ -56,7 +56,7 @@ export default defineConfig(({ command, mode }) => {
     assetsInclude,
     base: mode==='production' ? '/prelude' : undefined,
     plugins: [
-      typedocPlugin()
+      // typedocPlugin()
     ]
   }
 })
