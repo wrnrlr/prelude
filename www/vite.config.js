@@ -10,18 +10,15 @@ function typedocPlugin() {
     apply: 'build',
     configResolved(config) { _config = config },
     async writeBundle() {
-      const name = path.join(__dirname, 'typedoc.jsonc')
-      console.log('name',name)
+      const name = path.join(__dirname, 'typedoc.json')
       const config = JSON.parse(await Deno.readTextFile(name))
       config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude'
       config.useHostedBaseUrlForAbsoluteLinks = true
+      config.out = './www/docs'
       config.entryPoints = ['./src/mod.ts']
       const app = await Application.bootstrap(config)
-      console.log('ok1')
       const project = await app.convert()
-      console.log('ok2')
       await app.generateDocs(project, config.out)
-      console.log('ok3')
     }
   };
 }
@@ -38,33 +35,17 @@ export default defineConfig(({ command, mode }) => {
     // 'public/example/**'
   ]
 
-  // if (command==='serve') {
-    // build = {}
-  // } else {
-    build = {
-      // lib: {
-      //   entry: 'src/mod.ts', formats: ['es']
-      // },
-      rollupOptions: {
-        input: {
-          'index': path.join(root, 'index.html'),
-          'playground': path.join(root, 'playground.html'),
-          'docs': path.join(root, 'docs/index.html'),
-        }
-        // input: {
-        //   'index.html': 'index.html',
-        //   'playground.html': 'playground.html',
-        //   // 'mod.js': 'src/mod.ts',
-        // },
-        // output: {
-        //   entryFileNames: (info) => {
-        //     console.log(info.name,info.type)
-        //     return info.name+'.js'
-        //   }
-        // }
-      }
+  const input = {
+    'index': path.join(root, 'index.html'),
+    'playground': path.join(root, 'playground.html'),
+  }
+  if (command==='serve' && fs.existsSync('docs/index.html')) input[docs] = path.join(root, 'docs/index.html')
+  build = {
+    // lib: { entry: 'src/mod.ts', formats: ['es'] },
+    rollupOptions: {
+      input
     }
-  // }
+  }
 
   return {
     root,

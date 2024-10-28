@@ -1,6 +1,6 @@
 {
   "name": "prelude",
-  "out":"./docs/",
+  "out":"./www/docs/",
   "compilerOptions": {
     "strict": false,
     "allowJs": true,
