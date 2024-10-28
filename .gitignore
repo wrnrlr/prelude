@@ -3,3 +3,5 @@ deno.lock
 public/docs/
 node_modules/
 dist/
+www/dist/
+www/docs
