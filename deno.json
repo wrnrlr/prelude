@@ -20,7 +20,7 @@
   "tasks": {
     "dev": "deno run -A npm:vite --config www/vite.config.js",
     "test": "deno test -A ./test/*.[jt]s",
-    "docs": "deno run -A npm:typedoc --options www/typedoc.jsonc",
+    "docs": "deno run -A npm:typedoc --options www/typedoc.json",
     "build": "deno run -A npm:vite build --mode production --config www/vite.config.js",
     "release": "deno publish --allow-slow-types --allow-dirty && npm publish --access public",
     "clean": "rm -rf dist/ www/dist www/docs"

@@ -25,7 +25,6 @@ function typedocPlugin() {
 
 export default defineConfig(({ command, mode }) => {
   const root = path.join(__dirname, '')
-  const base =
 
   const define = {}
   let build
