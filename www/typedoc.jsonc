@@ -2,7 +2,7 @@
   "name": "prelude",
   "hostedBaseUrl": "https://wrnrlr.github.io/prelude",
   "useHostedBaseUrlForAbsoluteLinks": true,
-  "out":"./dist/docs/",
+  "out":"../dist/docs/",
   "compilerOptions": {
     "strict": false,
     "allowJs": true,
@@ -13,5 +13,5 @@
     "target": ["esnext"],
     "downlevelIteration": true
   },
-  "entryPoints": ["./src/mod.ts"]
+  "entryPoints": ["../src/mod.ts"]
 }

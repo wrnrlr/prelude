@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<head>
+<title>Prelude</title>
+<link href="https://unpkg.com/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />
+<script src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EPMJYD1EK8"></script>
+<script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-EPMJYD1EK8');</script>
+</head>
+
+<script type="module">
+
+import {h, signal, effect, untrack, resource, render, onMount, Show, List, Router} from '../src/mod.ts'
+import {EditorView, basicSetup} from "codemirror"
+import {javascript} from "@codemirror/lang-javascript"
+import {html} from "@codemirror/lang-html"
+
+const playing = signal(true)
+const examples = [
+  {name:'counter.html',title:'Counter'},
+  {name:'todo.html',title:'Todo'},
+  {name:'admin.html',title:'Admin'}
+]
+
+function Editor(props) {
+  const theme = EditorView.baseTheme({
+    'cm-editor': {display:'flex', height:'100%',backgroundColor:'lightpink'},
+    // '&': { maxHeight: '200px' },
+    '.cm-gutter,.cm-content': {minHeight: '100px', height:'100%'},
+    '.cm-scroller': {overflow: 'auto', height:'100%', flexGrow:1, backgroundColor:'' },
+  })
+  const ref = parent => {
+    let updateListenerExtension = EditorView.updateListener.of((update) => {
+      if (update.docChanged) {
+        console.log('doc change',update.state.doc.toString())
+        props.value(update.state.doc.toString())
+        // Handle the event here
+      }
+    });
+    let editor = new EditorView({
+      doc:props.value(), parent,
+      extensions: [basicSetup, theme, html(), updateListenerExtension]
+    })
+    effect(()=>{
+      console.log('effective!')
+      props.src(),props.file()
+      const insert = untrack(props.value)
+      editor.dispatch({changes: {from: 0, to: editor.state.doc.length, insert}})
+    })
+  }
+  return h('.p-1.w-half.h-full.bg-stone-100',{ref})
+}
+
+function Preview(props) {
+  return h('iframe.w-half.bg-gray-300', {srcdoc:props.value})
+}
+
+function TopMenu(props) {
+  return h('.flex.items-center.p-2.gap-2.bg-neutral-200',[
+    h(Show, {when:()=>!props.show()}, [
+      h(PreludeLogo),
+      h('.button.rounded.text-xl.bg-neutral-200.px-3.p-1', {onClick:e=>(props.show(b=>!b))},
+        h('i.icon.menu')),
+    ]),
+    h('input.grow', {value:'Example #1'}),
+    h('a.px-4.py-1.button.rounded-full.text-xl.bg-blue-500.text-white.shadow', {href:'/'},
+      h('i.icon.info.text-shadow-black'))])
+}
+
+function SideMenu(props) {
+  return h('.sidemenu.flex.column.px-2.py-2.gap-4.bg-neutral-300',[
+    h('.flex.items-center.justify-between', [
+      h(PreludeLogo),
+      h('.bg-neutral-300', {onClick:e=>(props.show(b=>!b))},
+        h('.px-3.py-1.rounded.text-xl.bg-neutral-300.text-neutral-700',h('i.icon.xmark'))
+      )
+    ]),
+    h('.flex.column.gap-2', [
+      h(SrcMenu,{name:'example',title:'Example',file:()=>props.file,items:()=>()=>examples,src:()=>props.src}),
+      h(SrcMenu,{name:'local',title:'Local Storage',file:()=>props.file,items:()=>props.local,src:()=>props.src})
+    ])
+  ])
+}
+
+function SrcMenu(props) {
+  effect(()=>console.log(props.src()===props.name))
+  return h('.flex.column.gap-1',[
+    h('button.flex.font-weight-600', {onClick:e=>props.src(props.name)}, props.title),
+    h(Show, {when:()=>props.src()===props.name},
+      h('.flex.column.gap-1.pl-2',
+        h(List, {each:()=>props.items}, (value,i) =>
+          h('button.flex', {onClick:e=>props.file(value().name)}, h('',()=>value().title))
+        )
+      )
+    )])
+}
+
+function Playground() {
+  const show = signal(false)
+  const src = signal('example')
+  const file = signal('counter.html')
+  const local = signal(examples)
+  const exs = ()=>examples
+  const content = signal('<!DOCTYPE html>\n<h1>Hello</h1>')
+  effect(()=>{
+    const s = src()
+  })
+  const doodle = resource(()=>({src:src(),file:file()}), async (r) => {
+    console.log('doodle',r)
+    if (r.src==='example') {
+      const html = await (await fetch('/example/'+r.file)).text()
+      content(html)
+    } else {
+      console.log('local')
+    }
+  })
+  return h('.flex.w-full.h-full',{style:'background-color:var(--neutral-100)'},[
+    h(Show, {when:show}, h(SideMenu, {show:()=>show,src:()=>src,file:()=>file,local:()=>local})),
+    h('.flex.column.grow.items-stretch', [
+      h(TopMenu, {playing:()=>playing, show:()=>show}),
+      h('.flex.grow', [
+        h(Editor,{value:()=>content,src:()=>src,file:()=>file}),
+        h(Preview,{value:()=>content})
+      ])
+    ])
+  ])
+}
+
+render(Playground, document.body)
+
+function PreludeLogo() {
+  return h('svg', {viewBox:'0 0 709 709',style:'width: 50px; --color:var(--neutral-700)'},
+    h('use', {'xlink:href':'./logo.svg#loop'}))
+}
+
+</script>
+
+<style >
+@import url('./assets/css/style.css');
+
+html {
+  font-size: 20px;
+  /* font-family: "Noto Sans Warang Citi", sans-serif; */
+  font-weight: 400;
+  font-style: normal;
+  margin: 0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  color: var(--neutral-900);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  flex-grow: 2;
+  width: 100%;
+  height: 100%;
+}
+
+.prelude {
+  color: var(--neutral-700);
+  font-weight: normal;
+}
+
+.sidemenu {
+  min-width: max-content;
+}
+
+.button {
+}
+.button:hover {
+    background-color:var(--neutral-300)
+}
+
+.CodeMirror { height: 100%; }
+</style>
