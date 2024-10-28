@@ -33,10 +33,6 @@ jobs:
       - name: Deno install
         run: deno install
 
-      # - run: deno task clean
-      # - name: NPM install
-      #   run: npm install
-
       # - name: Lint
       #   run: deno lint
 

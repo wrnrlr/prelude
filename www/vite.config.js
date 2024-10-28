@@ -25,6 +25,7 @@ function typedocPlugin() {
 
 export default defineConfig(({ command, mode }) => {
   const root = path.join(__dirname, '')
+  const base =
 
   const define = {}
   let build
@@ -54,7 +55,7 @@ export default defineConfig(({ command, mode }) => {
     build,
     optimizeDeps,
     assetsInclude,
-    base: mode==='production' ? '/prelude' : undefined,
+    base: mode==='production' ? 'https://wrnrlr.github.io/prelude/' : undefined,
     plugins: [
       // typedocPlugin()
     ]
