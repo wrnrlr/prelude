@@ -48,8 +48,12 @@ jobs:
       # - name: Typedoc
       #   run: ./node_modules/.bin/typedoc
 
+      - run : tree
+
       - name: Build
         run: deno task build
+
+      - run: tree
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
