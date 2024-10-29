@@ -41,6 +41,8 @@ i.brand.discord:before { font-family: "Brands"; content: "\f392"; }
 
 .text-white {color: white}
 .text-neutral-50 {color: var(--neutral-50)}
+.text-neutral-500 {color: var(--neutral-500)}
+.text-neutral-600 {color: var(--neutral-600)}
 .text-neutral-700 {color: var(--neutral-700)}
 .text-neutral-800 {color: var(--neutral-800)}
 .text-neutral-900 {color: var(--neutral-900)}
@@ -53,7 +55,21 @@ i.brand.discord:before { font-family: "Brands"; content: "\f392"; }
 .bg-neutral-900 {background-color: var(--neutral-300)}
 .bg-neutral-950 {background-color: var(--neutral-300)}
 
+.bg-slate-50 {background-color: var(--slate-50)}
+.bg-slate-100 {background-color: var(--slate-100)}
+.bg-slate-200 {background-color: var(--slate-200)}
+.bg-slate-300 {background-color: var(--slate-300)}
+
+.bg-gray-50 {background-color: var(--gray-50)}
+.bg-gray-100 {background-color: var(--gray-100)}
+.bg-gray-200 {background-color: var(--gray-200)}
+.bg-gray-300 {background-color: var(--gray-300)}
+
+.bg-stone-50 {background-color: var(--stone-50)}
 .bg-stone-100 {background-color: var(--stone-100)}
+.bg-stone-200 {background-color: var(--stone-200)}
+.bg-stone-300 {background-color: var(--stone-300)}
+
 .bg-gray-300 {background-color: var(--gray-300)}
 
 .bg-blue-400 {background-color: var(--blue-400)}
