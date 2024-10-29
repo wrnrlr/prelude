@@ -1,5 +1,5 @@
 # Prelude
-[NPM]() [JSR]()
+[NPM](https://www.npmjs.com/package/@wrnrlr/prelude) [JSR](https://jsr.io/@wrnrlr/prelude)
 
 Prelude lets you develop web applications in a familiar component-based functional style.
 It is build with the desire to have a lightweight frontend framework that works
@@ -8,9 +8,14 @@ sacrificing on developer expierence.
 
 ## Get Started
 
+The quickest way to start coding Prelude  "Playground" app on the Prelude homepage.
+It offers a IDE for Prelude complete with a code editor, live preview and a number of examples
+
+Aternativaly you can develop on your local machine
+
 Starting a new Prelude project is as easy as creating a html and opening it in your browser.
-For a complex aplication you probably want to use some JavaScript runtime and bundler
-Save the file below as `index.html`, start the `vite` dev server and open it in the browser.
+The easiest and most basic way to use Prelude is from inside a `<script>` tag of a html file.
+Save the file below as `index.html`, and run the `vite` command  dev server and open it in the browser.
 
 ```html
 <!DOCTYPE html>
@@ -20,8 +25,8 @@ Save the file below as `index.html`, start the `vite` dev server and open it in 
 import {h, signal, render} from 'https://esm.sh/wrnrlr/prelude'
 
 function Counter() {
-  const n = signal(1), onclick = _ => n(n=>n+1)
-  return h('button', {onclick}, n)
+  const n = signal(1)
+  return h('button', {onClick: e => n(n=>n+1)}, n)
 }
 
 render(Counter, document.body)
@@ -52,6 +57,10 @@ The `h` function allows one to write html in javascript with a DSL specifically 
 In Prelude we don't use JSX or some templating language to descript html content,
 instead we use a DSL called Hyperscript that can be written in JavaScript or TypeScript.
 
+The `h` function has 3 arguments, 1 manditory and 2 optional.
+The first argument is either a `string` or a `function`, and tells
+The second and/or third arguments respectivaly, are the properties and/or the childen of the first argument.
+
 The `h` function is used in either of two ways based on the type of the first argument,
 when it is a string it will create a html element like ,
 and when it is a function it will create a reactive component.
@@ -65,11 +74,23 @@ h('div',{},[
 One of the great benefits of not needing extra tooling to programmatically write html is that
 the `h` function can be used in the repl of a terminal or the console of a browser to expore its behaviour interactively.
 
+## Element Props
+
+
+
 ## Event Handler
 
-Prelude tries to integrate with the existing web APIs as much as possible, and handeling user events is no different,
-just use a function as the event handler of a given event type.
-The event handler MUST have one argument even if this is not being used, otherwise hyperscript will confuse it for a signal.
+Prelude tries to integrate with the existing web APIs as much as possible, handeling user events is no different,
+use a function to the event callback.
+
+In the following example we listen for `onclick` events for a button, and increment the value of the `n` signal.
+
+```js
+h('button', {onClick:e => n(i => i + 1)}, n)
+```
+
+Be adviced, the event handler MUST always have one argument even if this is not being used otherwise hyperscript will confuse it for a signal
+and won't call the event handler function.
 
 ```js
 // Ok
@@ -113,6 +134,8 @@ effect(() => console.log('c', c()))
 a(i => i+1)
 ```
 
+##
+
 ## Memo
 
 ```js
@@ -121,12 +144,15 @@ const n2 = memo(() => n() * 2)
 
 ## Conditional Rendering
 
-```js
-h('',show&&'Hi')
-```
 
 ```js
-h(Show, {when:show}, 'Hi')
+h(Show, {when:() => n()%2 === 0}, 'even')
+```
+
+It is also possible to conditionally render a component by prefixing it with a  JavaScript *and-expression*, like in the example below,
+
+```js
+h('',show&&'Hi')
 ```
 
 ## Rendering Lists
@@ -134,6 +160,14 @@ h(Show, {when:show}, 'Hi')
 ```js
 h(List, {each:['a','b','c']}, (v,i)=>`${i()}:${v()}`)
 ```
+
+## Fetching Resources
+
+The `resource()` function
+
+The functions returns a getter for the
+
+## Router
 
 ## Dependency Injection
 Prelude supports dependency injection with the `contect` and `useContext` APIs.
@@ -146,14 +180,25 @@ WIP
 
 WIP
 
+## Learn More
+
+* [API Reference]()
+* [SolidJS Docs]():
+  The documentation of SolidJS also a good place for background information because Prelude is lacking extensive documentation at this time.
+  Prelude started as a SolidJS clone, but with better HyperScript support. A lot of the concepts are the same but naming conventions can vary.
+
 ## TODO
 
-* [ ] `resource()`
 * [ ] tailwind styling
-* [ ] routing
 * [ ] Select
 * [ ] Multiselect
 * [ ] Table
 * [ ] Dropdown
 * [ ] Dialog
 * [ ] Dynamic
+
+## Links
+
+* [Homepage](https://wrnrlr.github.io/prelude)
+* [NPM](https://www.npmjs.com/package/@wrnrlr/prelude)
+* [JSR](https://jsr.io/@wrnrlr/prelude)
