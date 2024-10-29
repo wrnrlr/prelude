@@ -24,7 +24,7 @@ const examples = [
 
 function Editor(props) {
   const theme = EditorView.baseTheme({
-    "&.cm-editor": {height: "100%"},
+    "&.cm-editor": {height: "100%", backgroundColor:'lightpink'},
     ".cm-scroller": {overflow: "auto"}
     // 'cm-editor': {display:'flex', height:'100%',backgroundColor:'lightpink'},
     // '&': { maxHeight: '200px' },
@@ -58,16 +58,16 @@ function Preview(props) {
 }
 
 function TopMenu(props) {
-  return h('.flex.items-center.p-2.gap-2.bg-neutral-200',[
+  return h('.flex.items-center.p-2.gap-2.bg-neutral-100',[
     h(Show, {when:()=>!props.show()}, [
       h(PreludeLogo),
       h('.button.rounded.text-xl.bg-neutral-200.px-3.p-1', {onClick:e=>(props.show(b=>!b))},
         h('i.icon.menu')),
     ]),
     h('input.grow', {value:'Example #1'}),
-    h('.flex.px-2.py-1.rounded.text-base.bg-neutral-300.font-weight-500.text-neutral-700.gap-2.shadow',
+    h('.flex.px-2.py-1.rounded.text-base.bg-neutral-200.font-weight-500.text-neutral-700.gap-2.shadow',
       [h('i.icon.plus.text-base'),'New']),
-    h('.flex.px-2.py-1.rounded.text-base.bg-neutral-300.font-weight-500.text-neutral-700.gap-2.shadow',
+    h('.flex.px-2.py-1.rounded.text-base.bg-neutral-200.font-weight-500.text-neutral-700.gap-2.shadow',
       [h('i.icon.clone.text-base'),'Clone']),
     h('a.px-4.py-1.button.rounded-full.text-xl.bg-blue-500.text-white.shadow', {href:'/'},
       h('i.icon.info.text-shadow-black'))])

@@ -48,13 +48,15 @@ export default defineConfig(({ command, mode }) => {
     }
   }
 
+  console.log('BASE', mode==='production' ? 'https://wrnrlr.github.io/prelude/' : undefined)
+
   return {
     root,
     define,
     build,
     optimizeDeps,
     assetsInclude,
-    base: mode==='production' ? 'https://wrnrlr.github.io/prelude/' : undefined,
+    base: 'prelude',
     plugins: [
       // typedocPlugin()
     ]
