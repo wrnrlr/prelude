@@ -14,7 +14,7 @@ function typedocPlugin() {
       const config = JSON.parse(await Deno.readTextFile(name))
       config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude'
       config.useHostedBaseUrlForAbsoluteLinks = true
-      config.out = './www/docs'
+      config.out = './www/dist/docs'
       config.entryPoints = ['./src/mod.ts']
       const app = await Application.bootstrap(config)
       const project = await app.convert()
@@ -58,7 +58,7 @@ export default defineConfig(({ command, mode }) => {
     assetsInclude,
     base: 'prelude',
     plugins: [
-      // typedocPlugin()
+      typedocPlugin()
     ]
   }
 })
