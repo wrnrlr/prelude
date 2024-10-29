@@ -24,10 +24,12 @@ const examples = [
 
 function Editor(props) {
   const theme = EditorView.baseTheme({
-    'cm-editor': {display:'flex', height:'100%',backgroundColor:'lightpink'},
+    "&.cm-editor": {height: "100%"},
+    ".cm-scroller": {overflow: "auto"}
+    // 'cm-editor': {display:'flex', height:'100%',backgroundColor:'lightpink'},
     // '&': { maxHeight: '200px' },
-    '.cm-gutter,.cm-content': {minHeight: '100px', height:'100%'},
-    '.cm-scroller': {overflow: 'auto', height:'100%', flexGrow:1, backgroundColor:'' },
+    // '.cm-gutter,.cm-content': {minHeight: '100px', height:'100%'},
+    // '.cm-scroller': {overflow: 'auto', height:'100%', flexGrow:1, backgroundColor:'' },
   })
   const ref = parent => {
     let updateListenerExtension = EditorView.updateListener.of((update) => {
@@ -48,7 +50,7 @@ function Editor(props) {
       editor.dispatch({changes: {from: 0, to: editor.state.doc.length, insert}})
     })
   }
-  return h('.p-1.w-half.h-full.bg-stone-100',{ref})
+  return h('.p-1.w-half.bg-stone-100',{ref,style:'height:100%; position: relative;'})
 }
 
 function Preview(props) {
@@ -63,6 +65,10 @@ function TopMenu(props) {
         h('i.icon.menu')),
     ]),
     h('input.grow', {value:'Example #1'}),
+    h('.flex.px-2.py-1.rounded.text-base.bg-neutral-300.font-weight-500.text-neutral-700.gap-2.shadow',
+      [h('i.icon.plus.text-base'),'New']),
+    h('.flex.px-2.py-1.rounded.text-base.bg-neutral-300.font-weight-500.text-neutral-700.gap-2.shadow',
+      [h('i.icon.clone.text-base'),'Clone']),
     h('a.px-4.py-1.button.rounded-full.text-xl.bg-blue-500.text-white.shadow', {href:'/'},
       h('i.icon.info.text-shadow-black'))])
 }
@@ -72,7 +78,7 @@ function SideMenu(props) {
     h('.flex.items-center.justify-between', [
       h(PreludeLogo),
       h('.bg-neutral-300', {onClick:e=>(props.show(b=>!b))},
-        h('.px-3.py-1.rounded.text-xl.bg-neutral-300.text-neutral-700',h('i.icon.xmark'))
+        h('.px-3.py-1.rounded.text-xl.bg-neutral-300.text-neutral-700', h('i.icon.xmark'))
       )
     ]),
     h('.flex.column.gap-2', [
@@ -96,18 +102,19 @@ function SrcMenu(props) {
 }
 
 function Playground() {
-  const show = signal(false)
+  const show = signal(true)
   const src = signal('example')
-  const file = signal('counter.html')
+  const file = signal('admin.html')
   const local = signal(examples)
   const exs = ()=>examples
   const content = signal('<!DOCTYPE html>\n<h1>Hello</h1>')
   effect(()=>{
     const s = src()
   })
-  const doodle = resource(()=>({src:src(),file:file()}), async (r) => {
+  const doodle = resource(()=>({src:src(),file:file()}), async r => {
     console.log('doodle',r)
     if (r.src==='example') {
+      console.log('fetch',r.file)
       const html = await (await fetch('/example/'+r.file)).text()
       content(html)
     } else {
@@ -115,11 +122,11 @@ function Playground() {
     }
   })
   return h('.flex.w-full.h-full',{style:'background-color:var(--neutral-100)'},[
-    h(Show, {when:show}, h(SideMenu, {show:()=>show,src:()=>src,file:()=>file,local:()=>local})),
+    h(Show, {when:show}, h(SideMenu, {show:()=>show, src:()=>src, file:()=>file, local:()=>local})),
     h('.flex.column.grow.items-stretch', [
       h(TopMenu, {playing:()=>playing, show:()=>show}),
-      h('.flex.grow', [
-        h(Editor,{value:()=>content,src:()=>src,file:()=>file}),
+      h('.flex', {style:'overflow:auto;height:100%'}, [
+        h(Editor,{value:()=>content, src:()=>src, file:()=>file}),
         h(Preview,{value:()=>content})
       ])
     ])

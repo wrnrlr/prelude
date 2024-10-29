@@ -33,6 +33,8 @@ i.icon:before {font-family: "Solid Icons"; font-weight: 900}
 i.icon.menu:before { content: '\f0c9'; font-family: "Solid Icons" }
 i.icon.info:before { content: '\f129'; font-family: "Solid Icons" }
 i.icon.xmark:before { content: '\f00d'; font-family: "Solid Icons" }
+i.icon.plus:before {content: '\2b'; font-family: "Solid Icons" }
+i.icon.clone:before {content: '\f24d'; font-family: "Solid Icons" }
 
 i.brand.x:before { font-family: "Brands"; content: "\f392"; }
 i.brand.discord:before { font-family: "Brands"; content: "\f392"; }
