@@ -11,12 +11,16 @@ function typedocPlugin() {
     configResolved(config) { _config = config },
     async writeBundle() {
       const name = path.join(__dirname, 'typedoc.json')
+      console.log('NAME',name)
       const config = JSON.parse(await Deno.readTextFile(name))
+      console.log('CONFIG',config)
       config.hostedBaseUrl = '/prelude'
       config.useHostedBaseUrlForAbsoluteLinks = true
       config.out = './www/dist/docs'
       config.entryPoints = ['./src/mod.ts']
+      console.log('CONFIG',config)
       const app = await Application.bootstrap(config)
+      console.log(app)
       const project = await app.convert()
       console.log('PROJECT', project)
       await app.generateDocs(project, config.out)
