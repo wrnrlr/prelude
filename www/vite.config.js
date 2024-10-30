@@ -18,6 +18,7 @@ function typedocPlugin() {
       config.entryPoints = ['./src/mod.ts']
       const app = await Application.bootstrap(config)
       const project = await app.convert()
+      console.log('PROJECT', project)
       await app.generateDocs(project, config.out)
     }
   };
