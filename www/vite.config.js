@@ -20,7 +20,7 @@ function typedocPlugin() {
       config.entryPoints = [path.join(__dirname, '../mod.ts')]
       console.log('CONFIG',config)
       const app = await Application.bootstrap(config)
-      console.log(app)
+      // console.log(app)
       if (!app) Deno.exit()
       const project = await app.convert()
       if (!project) Deno.exit()
