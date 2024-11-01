@@ -44,9 +44,9 @@ export default defineConfig(({ command, mode }) => {
     'index': path.join(root, 'index.html'),
     'playground': path.join(root, 'playground.html'),
   }
-  const docs = path.join(root, 'docs/index.html')
-  if (fs.existsSync(docs)) input.docs = docs
-  console.log('docs',input.docs)
+  // const docs = path.join(root, 'distdocs/index.html')
+  // if (fs.existsSync(docs)) input.docs = docs
+  // console.log('docs',input.docs)
 
   build = {
     // lib: { entry: 'src/mod.ts', formats: ['es'] },
