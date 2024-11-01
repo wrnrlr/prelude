@@ -17,7 +17,7 @@ function typedocPlugin() {
       config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude'
       config.useHostedBaseUrlForAbsoluteLinks = true
       config.out = './www/dist/docs'
-      config.entryPoints = [path.join(__dirname, '../mod.ts')]
+      config.entryPoints = [path.join(__dirname, '../src/mod.ts')]
       console.log('CONFIG',config)
       const app = await Application.bootstrap(config)
       // console.log(app)
