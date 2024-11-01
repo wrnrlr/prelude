@@ -14,7 +14,7 @@ function typedocPlugin() {
       console.log('NAME',name)
       const config = JSON.parse(await Deno.readTextFile(name))
       console.log('CONFIG',config)
-      config.hostedBaseUrl = '/prelude'
+      config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude'
       config.useHostedBaseUrlForAbsoluteLinks = true
       config.out = './www/dist/docs'
       config.entryPoints = ['./src/mod.ts']
@@ -25,7 +25,7 @@ function typedocPlugin() {
       console.log('PROJECT', project)
       await app.generateDocs(project, config.out)
     }
-  };
+  }
 }
 
 export default defineConfig(({ command, mode }) => {
@@ -44,7 +44,9 @@ export default defineConfig(({ command, mode }) => {
     'index': path.join(root, 'index.html'),
     'playground': path.join(root, 'playground.html'),
   }
-  if (fs.existsSync('docs/index.html')) input[docs] = path.join(root, 'docs/index.html')
+  const docs = path.join(root, 'docs/index.html')
+  if (fs.existsSync(docs)) input.docs = docs
+  console.log('docs',input.docs)
 
   build = {
     // lib: { entry: 'src/mod.ts', formats: ['es'] },
