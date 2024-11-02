@@ -14,7 +14,7 @@ function typedocPlugin() {
       console.log('NAME',name)
       const config = JSON.parse(await Deno.readTextFile(name))
       console.log('CONFIG',config)
-      config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude'
+      config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude/docs'
       config.useHostedBaseUrlForAbsoluteLinks = true
       config.out = path.join(__dirname, './dist/docs')
       config.entryPoints = [path.join(__dirname, '../src/mod.ts')]
