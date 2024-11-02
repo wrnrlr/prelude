@@ -7,8 +7,6 @@
     "checkJs": false,
     "noImplicitThis": false,
     "allowImportingTsExtensions": true,
-    "lib": ["esnext","dom"],
-    "target": ["esnext"],
     "downlevelIteration": true
   },
   "entryPoints": ["../src/mod.ts"]
