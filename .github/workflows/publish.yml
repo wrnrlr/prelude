@@ -25,11 +25,6 @@ jobs:
         with:
           deno-version: v2.x
 
-      # - name: Setup Node
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: 22
-
       - name: Deno install
         run: deno install
 
@@ -39,21 +34,8 @@ jobs:
       - name: Run tests
         run: deno task test
 
-      - run: sudo apt-get install tree
-      - run: tree
-
-      # - name: Typedoc
-      #   run: deno task typedoc || true
-
-      # - name: Typedoc
-      #   run: ./node_modules/.bin/typedoc
-
-      - run : tree
-
       - name: Build
         run: deno task build
-
-      - run: tree
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
