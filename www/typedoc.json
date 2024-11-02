@@ -7,7 +7,7 @@
     "checkJs": false,
     "noImplicitThis": false,
     "allowImportingTsExtensions": true,
-    "lib": [],
+    "lib": ["esnext","dom"],
     "target": ["esnext"],
     "downlevelIteration": true
   },
