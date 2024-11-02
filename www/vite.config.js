@@ -16,7 +16,7 @@ function typedocPlugin() {
       console.log('CONFIG',config)
       config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude'
       config.useHostedBaseUrlForAbsoluteLinks = true
-      config.out = './www/dist/docs'
+      config.out = path.join(__dirname, './public/docs')
       config.entryPoints = [path.join(__dirname, '../src/mod.ts')]
       console.log('CONFIG',config)
       const app = await Application.bootstrap(config)
@@ -25,7 +25,11 @@ function typedocPlugin() {
       const project = await app.convert()
       if (!project) Deno.exit()
       console.log('PROJECT', project)
-      await app.generateDocs(project, config.out)
+      try {
+        await app.generateDocs(project, config.out)
+      } catch (e) {
+        console.error(e)
+      }
     }
   }
 }
