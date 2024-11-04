@@ -5,3 +5,4 @@ node_modules/
 dist/
 www/dist/
 www/docs
+www/public/bundle.js

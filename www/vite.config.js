@@ -1,38 +1,8 @@
 import * as path from '@std/path'
 import * as fs from '@std/fs'
 import {defineConfig} from 'vite'
+import * as esbuild from 'esbuild'
 import { Application, TSConfigReader, TypeDocReader } from 'typedoc'
-
-function typedocPlugin() {
-  let _config
-  return {
-    name: 'typedoc-plugin',
-    apply: 'build',
-    configResolved(config) { _config = config },
-    async writeBundle() {
-      const name = path.join(__dirname, 'typedoc.json')
-      console.log('NAME',name)
-      const config = JSON.parse(await Deno.readTextFile(name))
-      console.log('CONFIG',config)
-      config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude/docs'
-      config.useHostedBaseUrlForAbsoluteLinks = true
-      config.out = path.join(__dirname, './dist/docs')
-      config.entryPoints = [path.join(__dirname, '../src/mod.ts')]
-      console.log('CONFIG',config)
-      const app = await Application.bootstrap(config)
-      // console.log(app)
-      if (!app) Deno.exit()
-      const project = await app.convert()
-      if (!project) Deno.exit()
-      console.log('PROJECT', project)
-      try {
-        await app.generateDocs(project, config.out)
-      } catch (e) {
-        console.error(e)
-      }
-    }
-  }
-}
 
 export default defineConfig(({ command, mode }) => {
   const root = path.join(__dirname, '')
@@ -55,9 +25,20 @@ export default defineConfig(({ command, mode }) => {
   // console.log('docs',input.docs)
 
   build = {
-    // lib: { entry: 'src/mod.ts', formats: ['es'] },
+    lib: {
+      entry: path.join(root, '../src/mod.ts'),
+      formats: ['es'],
+      name: 'mod',
+      fileName: (name) => 'prelude.js'
+    },
     rollupOptions: {
-      input
+      input,
+      exports: 'named',
+      output: {
+        manualChunks(id) {
+          // if (id.endsWith('src/mod.ts')) return 'prelude'
+        }
+      }
     }
   }
 
@@ -69,7 +50,57 @@ export default defineConfig(({ command, mode }) => {
     assetsInclude,
     base: '/prelude',
     plugins: [
-      typedocPlugin()
+      esbuildPlugin(), typedocPlugin()
     ]
   }
 })
+
+function esbuildPlugin() {
+  let ctx
+  return {
+    name: 'typedoc-plugin',
+    async buildStart() {
+      const entry = path.join(__dirname, '../src/mod.ts')
+      const options = {
+        entryPoints: [entry],
+        outfile: path.join(__dirname, './public/bundle.js'),
+        bundle: true,
+        format:'esm',
+        // minify: true,
+        // sourcemap: true,
+        target: ["es2020"],
+      }
+      ctx = await  esbuild.context(options)
+      await ctx.watch()
+    },
+    async buildEnd() {
+      await ctx.dispose()
+    }
+  }
+}
+
+function typedocPlugin() {
+  let _config
+  return {
+    name: 'typedoc-plugin',
+    apply: 'build',
+    configResolved(config) { _config = config },
+    async writeBundle() {
+      const name = path.join(__dirname, 'typedoc.json')
+      const config = JSON.parse(await Deno.readTextFile(name))
+      config.hostedBaseUrl = 'https://wrnrlr.github.io/prelude/docs'
+      config.useHostedBaseUrlForAbsoluteLinks = true
+      config.out = path.join(__dirname, './dist/docs')
+      config.entryPoints = [path.join(__dirname, '../src/mod.ts')]
+      const app = await Application.bootstrap(config)
+      if (!app) Deno.exit()
+      const project = await app.convert()
+      if (!project) Deno.exit()
+      try {
+        await app.generateDocs(project, config.out)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+  }
+}
