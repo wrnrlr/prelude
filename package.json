@@ -6,6 +6,5 @@
   "description": "A signal based frontend library with fine-grained reactivity",
   "main": "./src/mod.ts",
   "scripts": {},
-  "dependencies": {
-  }
+  "dependencies": { "@codemirror/lang-html": "^6.4.9", "codemirror": "^6.0.1" }
 }
