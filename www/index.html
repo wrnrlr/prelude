@@ -198,10 +198,7 @@ a.card {
 </style>
 
 <script type="module">
-import {h, signal, effect, untrack, resource, render, onMount, Show, List, Router} from '../src/mod.ts'
-import {EditorView, basicSetup} from "codemirror"
-import {javascript} from "@codemirror/lang-javascript"
-import {html} from "@codemirror/lang-html"
+import {h, signal, render} from '../src/mod.ts'
 
 function Counter() {
   const n = signal(1)
