@@ -16,54 +16,57 @@ import {html} from "@codemirror/lang-html"
 
 const playing = signal(true)
 const examples = [
-  {name:'counter.html',title:'Counter'},
-  {name:'todo.html',title:'Todo'},
-  {name:'admin.html',title:'Admin'}
+  {name:'counter',title:'Counter'},
+  {name:'todo',title:'Todo'},
+  // {name:'admin',title:'Admin'}
 ]
 
 function Editor(props) {
   const theme = EditorView.baseTheme({
     '&.cm-editor': {height: '100%', backgroundColor:'var(--stone-100)'},
     '&.cm-editor.cm-focused': {outline: 'none'},
-    '.cm-scroller': {overflow: 'auto'},
-    '.cm-gutter': {backgroundColor:'var(--stone-200)'},
-    '.cm-content': {height: "100%", backgroundColor:'var(--stone-100)'},
+    '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground': { backgroundColor: 'var(--pink-200)'},
+    '&.cm-scroller': {overflow: 'auto'},
+    '&.cm-gutter': {backgroundColor:'var(--stone-200)'},
+    '&.cm-content': {height: "100%", backgroundColor:'var(--stone-100)'},
   })
   const ref = parent => {
-    let updateListenerExtension = EditorView.updateListener.of((update) => {
+    let updateListener = EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         console.log('doc change',update.state.doc.toString())
         props.value(update.state.doc.toString())
-        // Handle the event here
       }
     });
     let editor = new EditorView({
-      doc:props.value(), parent,
-      extensions: [basicSetup, theme, html(), updateListenerExtension]
+      doc:'', parent,
+      extensions: [theme, basicSetup, html(), updateListener]
     })
     effect(()=>{
-      console.log('effective!')
-      props.src(),props.file()
-      const insert = untrack(props.value)
+      // console.log('loading', props.value.loading);
+      if (props.value.loading) return
+      const insert = props.value()
+      // console.log('set content',insert);
       editor.dispatch({changes: {from: 0, to: editor.state.doc.length, insert}})
     })
   }
-  return h('.p-1.w-half.bg-stone-200',{ref,style:'height:100%; position: relative;'})
+  return h(Show, {when:()=>!props.value.loading, fallback:'Loading...'},
+    h('.p-1.w-half.h-full.bg-stone-200',{ref,style:'position:relative'}))
 }
 
 function Preview(props) {
-  return h('iframe.w-half.bg-stone-200', {srcdoc:props.value})
+  return h(Show, {when:()=>!props.value.loading, fallback:'Loading...'},
+    h('iframe.w-half.bg-stone-200', {srcdoc:props.value}))
 }
 
 function TopMenu(props) {
   return h('.flex.items-center.p-1.gap-2.bg-neutral-100',[
     h('.button.rounded.text-xl.bg-neutral-100.p-1', {onClick:e=>(props.show(b=>!b))},
       h('i.icon.menu')),
-    h('input.grow', {value:'Example #1'}),
-    h('.flex.px-2.py-1.rounded.text-md.bg-gray-300.font-weight-500.text-neutral-700.gap-2.shadow',
-      [h('i.icon.plus.text-md'),'New']),
-    h('.flex.px-2.py-1.rounded.text-md.bg-gray-300.font-weight-500.text-neutral-700.gap-2.shadow',
-      [h('i.icon.clone.text-md'),'Clone']),
+    h('input.grow', {value:props.file, readonly:true}),
+    // h('.flex.px-2.py-1.rounded.text-md.bg-gray-300.font-weight-500.text-neutral-700.gap-2.shadow',
+    //   [h('i.icon.plus.text-md'),'New']),
+    // h('.flex.px-2.py-1.rounded.text-md.bg-gray-300.font-weight-500.text-neutral-700.gap-2.shadow',
+    //   [h('i.icon.clone.text-md'),'Clone']),
     h('a.px-3.py-1.rounded-full.text-md.bg-blue-500.text-white.shadow', {href:'/prelude'},
       h('i.icon.info.text-shadow-black'))])
 }
@@ -75,7 +78,7 @@ function SideMenu(props) {
     ]),
     h('.flex.column.gap-2', [
       h(SrcMenu,{name:'example',title:'Example',file:()=>props.file,items:()=>()=>examples,src:()=>props.src}),
-      h(SrcMenu,{name:'local',title:'Local Storage',file:()=>props.file,items:()=>props.local,src:()=>props.src})
+      // h(SrcMenu,{name:'local',title:'Local Storage',file:()=>props.file,items:()=>props.local,src:()=>props.src})
     ])
   ])
 }
@@ -96,19 +99,18 @@ function SrcMenu(props) {
 function Playground() {
   const show = signal(true)
   const src = signal('example')
-  const file = signal('admin.html')
+  const file = signal('counter')
   const local = signal(examples)
   const exs = ()=>examples
-  const content = signal('<!DOCTYPE html>\n<h1>Hello</h1>')
-  effect(()=>{
-    const s = src()
-  })
   const doodle = resource(()=>({src:src(),file:file()}), async r => {
-    console.log('doodle',r)
+    console.log('change resource',r)
     if (r.src==='example') {
       console.log('fetch',r.file)
-      const html = await (await fetch('/prelude/example/'+r.file)).text()
-      content(html)
+      const resp = await fetch('/prelude/example/' + r.file+'.html')
+      const text = await resp.text()
+      // console.log(text)
+      return text
+      // content(html)
     } else {
       console.log('local')
     }
@@ -116,10 +118,10 @@ function Playground() {
   return h('.flex.w-full.h-full',{style:'background-color:var(--neutral-100)'},[
     h(Show, {when:show}, h(SideMenu, {show:()=>show, src:()=>src, file:()=>file, local:()=>local})),
     h('.flex.column.grow.items-stretch', [
-      h(TopMenu, {playing:()=>playing, show:()=>show}),
+      h(TopMenu, {playing:()=>playing, show:()=>show, file:()=>file}),
       h('.flex', {style:'overflow:auto;height:100%'}, [
-        h(Editor,{value:()=>content, src:()=>src, file:()=>file}),
-        h(Preview,{value:()=>content})
+        h(Editor,{value:()=>doodle, src:()=>src, file:()=>file}),
+        h(Preview,{value:()=>doodle})
       ])
     ])
   ])
@@ -173,5 +175,4 @@ body {
     background-color:var(--neutral-300)
 }
 
-.CodeMirror { height: 100%; }
 </style>
