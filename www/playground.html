@@ -33,8 +33,9 @@ function Editor(props) {
   const ref = parent => {
     let updateListener = EditorView.updateListener.of((update) => {
       if (update.docChanged) {
-        console.log('doc change',update.state.doc.toString())
-        props.value(update.state.doc.toString())
+        console.log('doc change')
+        props.setValue(update.state.doc.toString())
+        // props.value(update.state.doc.toString())
       }
     });
     let editor = new EditorView({
@@ -49,13 +50,11 @@ function Editor(props) {
       editor.dispatch({changes: {from: 0, to: editor.state.doc.length, insert}})
     })
   }
-  return h(Show, {when:()=>!props.value.loading, fallback:'Loading...'},
-    h('.p-1.w-half.h-full.bg-stone-200',{ref,style:'position:relative'}))
+  return h('.p-1.w-half.h-full.bg-stone-200',{ref,style:'position:relative'})
 }
 
 function Preview(props) {
-  return h(Show, {when:()=>!props.value.loading, fallback:'Loading...'},
-    h('iframe.w-half.bg-stone-200', {srcdoc:props.value}))
+  return h('iframe.w-half.bg-stone-200', {srcdoc:props.value})
 }
 
 function TopMenu(props) {
@@ -101,12 +100,13 @@ function Playground() {
   const src = signal('example')
   const file = signal('counter')
   const local = signal(examples)
+  const content = signal('')
   const exs = ()=>examples
   const doodle = resource(()=>({src:src(),file:file()}), async r => {
     console.log('change resource',r)
     if (r.src==='example') {
       console.log('fetch',r.file)
-      const resp = await fetch('/prelude/example/' + r.file+'.html')
+      const resp = await fetch('/prelude/example/' + r.file + '.html')
       const text = await resp.text()
       // console.log(text)
       return text
@@ -115,14 +115,19 @@ function Playground() {
       console.log('local')
     }
   })
+  const setContent = s => {
+    console.log('set content')
+    content(s)
+  }
   return h('.flex.w-full.h-full',{style:'background-color:var(--neutral-100)'},[
     h(Show, {when:show}, h(SideMenu, {show:()=>show, src:()=>src, file:()=>file, local:()=>local})),
     h('.flex.column.grow.items-stretch', [
       h(TopMenu, {playing:()=>playing, show:()=>show, file:()=>file}),
-      h('.flex', {style:'overflow:auto;height:100%'}, [
-        h(Editor,{value:()=>doodle, src:()=>src, file:()=>file}),
-        h(Preview,{value:()=>doodle})
-      ])
+      h(Show, {when:()=>!doodle.loading, fallback: 'Loading...'},
+        h('.flex', {style:'overflow:auto;height:100%'}, [
+          h(Editor, {value:()=>doodle, setValue:setContent, src:()=>src, file:()=>file}),
+          h(Preview, {value:()=>content})
+        ]))
     ])
   ])
 }
@@ -136,7 +141,7 @@ function PreludeLogo() {
 
 </script>
 
-<style >
+<style>
 @import url('./assets/css/style.css');
 
 html {
