@@ -102,7 +102,6 @@ export function resource(pSource,pFetcher,pOptions) {
     loading: {
       get() {
         const s = state();
-        console.log('loading',s)
         return s === 'pending' || s === 'refreshing';
       }
     },
