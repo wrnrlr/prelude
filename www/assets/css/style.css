@@ -5,7 +5,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url("./assets/fonts/far.woff2") format("woff2"), url("./assets/fonts/far.ttf") format("truetype");
+  src: url("/fonts/far.woff2") format("woff2"), url("/fonts/far.ttf") format("truetype");
 }
 
 @font-face {
@@ -13,7 +13,7 @@
   font-style: normal;
   font-weight: 900;
   font-display: block;
-  src: url("./assets/fonts/fas.woff2") format("woff2"), url("./assets/fonts/fas.ttf") format("truetype");
+  src: url("/fonts/fas.woff2") format("woff2"), url("/fonts/fas.ttf") format("truetype");
 };
 
 @font-face {
@@ -21,7 +21,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url("./assets/fonts/fab.woff2") format("woff2"), url("./assets/fonts/fab.ttf") format("truetype");
+  src: url("/fonts/fab.woff2") format("woff2"), url("/fonts/fab.ttf") format("truetype");
 }
 
 .icon {display:flex; display:inline-block}
