@@ -81,7 +81,7 @@ export function List<T>(props:ListProps<T>) {
   }
   const mapper = indexes ? mapperWithIndexes : mapperWithoutIndexes
   return memo(() => {
-    const newItems = list.call ? list() : []
+    const newItems = list.call ? list() : list
     // (newItems)[$TRACK]; // top level tracking
     return untrack(() => {
       const temp = new Array(newItems.length) // new mapped array

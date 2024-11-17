@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<title>Demo</title>
+
+<script type="module">
+
+import {h,signal,effect,batch,wrap,render,onMount,List} from '../src/mod.ts'
+
+function App() {
+  const fruits = ['apple', 'banana', 'cherry']
+  return h(List, {each:fruits}, f => f)
+}
+
+render(App, document.body)
+
+</script>
