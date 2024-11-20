@@ -43,11 +43,12 @@ testing('h with basic element', {skip:true}, async test => {
   // await test('regex content', () => assertHTML(h('b',/\w/), '<b>/\\w/</b>'))
   await test("signal content", () => assertHTML(h('i',()=>1), '<i>1</i>'))
   await test('array content', () => assertHTML(h('i',['A',1,2n]), '<i>A12</i>'))
-  await test('style attribute', () => assertHTML(h('hr',{style:'color:red'}), '<hr style="color: red;">'))
-  await test('htmlFor attribute', () => assertHTML(h('label',{htmlFor:'a'}), '<label for="a"></label>'))
-  await test('ref attribute', () => assertHTML(h('hr',{ref:el=>el.setAttribute('a','1')}), '<hr a="1">'))
-  await test('classList attribute', () => assertHTML(h('hr', {classList:()=>({a:true})}), '<hr class="a">'))
-  await test('class from tag & attribute', () => assertHTML(h('hr.a',{class:'b'}), '<hr class="a b">'))
+  await test('ref property', () => assertHTML(h('hr',{ref:el=>el.setAttribute('a','1')}), '<hr a="1">'))
+  await test('style property sets style attribute', () => assertHTML(h('hr',{style:'color:red'}), '<hr style="color: red;">'))
+  await test('htmlFor property sets for attribute', () => assertHTML(h('label',{htmlFor:'a'}), '<label for="a"></label>'))
+  await test('classList property sets class attribute', () => assertHTML(h('hr', {classList:()=>({a:true})}), '<hr class="a">'))
+  await test('custom attribute', () => assertHTML(h('hr', {'attr:a':'b'}), '<hr a="b">'))
+  await test('custom empty attribute', () => assertHTML(h('hr', {'attr:data-a':''}), '<hr data-a="">'))
 })
 
 function assertText(t, e, msg) { assertEquals(t(), e, msg) }

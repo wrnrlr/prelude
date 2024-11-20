@@ -283,7 +283,7 @@ function eventHandler(e:any) {
 }
 
 function setAttribute(node:Node, name:string, value?:string):any {
-  value ? node.setAttribute(name, value) : node.removeAttribute(name)
+  value===undefined || value===null ? node.removeAttribute(name) : node.setAttribute(name, value)
 }
 
 function setAttributeNS(node:Node, ns:string, name:string, value?:string):any {
