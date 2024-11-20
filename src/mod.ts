@@ -1,6 +1,6 @@
 // @ts-nocheck:
 export type {Getter,Setter,Fn,EqualsFn,ErrorFn,RootFn,UpdateFn} from './reactive.ts'
-export {signal,effect,untrack,batch,memo,root,wrap,onMount} from './reactive.ts'
+export {signal,effect,untrack,batch,memo,root,wrap,onMount,onCleanup} from './reactive.ts'
 export {nbsp} from './constants.ts'
 export {Show,List} from './controlflow.ts'
 export {runtime, type Runtime} from './runtime.ts'

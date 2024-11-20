@@ -327,8 +327,19 @@ export function onMount(fn: () => void) {
   effect(() => untrack(fn));
 }
 
+/** Runs an effect `fn` once before the reactive scope is disposed */
 export function onCleanup(fn: Fn):void {
   OBSERVER?.cleanups.push(fn)
+}
+
+
+/**
+@internal
+@experimental
+*/
+export function autoclean(fn: Fn):Fn {
+  const cleanup = untrack(fn)
+  if (cleanup) OBSERVER?.cleanups.push(fn)
 }
 
 export function onError(fn: ErrorFn):void {
