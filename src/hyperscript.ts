@@ -126,15 +126,17 @@ export function hyperscript(r:Runtime, patch?:any):HyperScript {
       if (tag.id) e.setAttribute('id',tag.id)
       if (tag.classes?.length) {
         const cd = Object.getOwnPropertyDescriptor(props2,'class') ?? ({value:'',writable:true,enumerable:true} as any);
-        (props2 as any).class = (!cd.value.call) ?
-          [...tag.classes,...cd.value.split(' ')].filter(c=>c).join(' ') :
-          () => [...tag.classes,...cd.value().split(' ')].filter(c=>c).join(' ')
+        if (cd.value) {
+          (props2 as any).class = (cd.value?.call) ?
+            () => [...tag.classes,...cd.value().split(' ')].filter(c=>c).join(' ') :
+            [...tag.classes,...cd.value.split(' ')].filter(c=>c).join(' ')
+        }
       }
       if (patch) patch(props2)
       let dynamic = false
       const d = Object.getOwnPropertyDescriptors(props2)
       for (const k in d) {
-        if (k !== "ref" && !k.startsWith('on') && d[k].value?.call) {
+        if (k !== 'ref' && !k.startsWith('on') && d[k].value?.call) {
           dynamicProperty(props2 as any, k)
           dynamic = true
         } else if (d[k].get) dynamic = true
