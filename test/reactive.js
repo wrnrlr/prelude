@@ -1,7 +1,7 @@
 import {assertEquals,assert} from '@std/assert'
 import {describe,it} from '@std/testing/bdd'
 
-import {signal,effect,untrack,batch,memo,context,useContext,root,wrap} from '../src/reactive.ts'
+import {signal,effect,untrack,batch,memo,context,useContext,root,wrap,fuse} from '../src/reactive.ts'
 
 describe('signal', () => {
   const a = signal(1)
@@ -11,6 +11,17 @@ describe('signal', () => {
   assertEquals(a('Hi'),'Hi')
   assertEquals(a(NaN),NaN)
   assertEquals(a(null),null)
+})
+
+describe('fuse', () => {
+  const n = signal(1)
+  const odd = signal(false)
+  const c = fuse(n, i => (odd(i%2===0), n(i)))
+  assertEquals(c(),1)
+  assertEquals(c(2),2)
+  assertEquals(odd(),true)
+  assertEquals(c(i=>i+1),3)
+  assertEquals(odd(),false)
 })
 
 describe('signal with equals option', () => {

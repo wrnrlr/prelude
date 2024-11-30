@@ -213,6 +213,14 @@ export function signal<T>(value:T, options?:Options<T>): Getter<T> & Setter<T> {
   return f as unknown as Getter<T> & Setter<T>
 }
 
+export function fuse<T>(getter:Getter<T>, setter:Setter<T>):Getter<T> & Setter<T> {
+  return (...args:T[]) => {
+    if (args.length) return setter(args[0]) as T
+    else return getter()
+  }
+}
+
+
 /**
 @group Reactive Primitive
 */
