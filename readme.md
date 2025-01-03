@@ -181,6 +181,20 @@ h(Router,[
 ])
 ```
 
+## Developer Information
+
+Start Development server
+
+```sh
+deno task dev
+```
+
+Run tests
+
+```sh
+deno task test
+```
+
 ## Learn More
 
 * [API Reference]()
