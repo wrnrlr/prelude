@@ -12,7 +12,7 @@ export {resource,makeAbortable,abortable} from './resource.js'
 // export {Input,Table} from './components.js'
 // export * from './canvas.js'
 
-const r:Runtime|undefined = /*#__PURE__*/ (typeof window === 'object') ? runtime(window as any) : undefined
+const r:Runtime = /*#__PURE__*/ (typeof window === 'object') ? runtime(window as any) : undefined as any
 
 /** h
 @example Element with a single child
@@ -29,7 +29,7 @@ h(Input,{onInput:e => {}})
 ```
 @group Hyperscript
 */
-const h:HyperScript|undefined = /*#__PURE__*/ r ? hyperscript(r) : undefined
+const h:HyperScript = /*#__PURE__*/ r ? hyperscript(r) : undefined
 
 const render = /*#__PURE__*/ r?.render
 
