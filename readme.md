@@ -183,6 +183,13 @@ h(Router,[
 
 ## Developer Information
 
+Only Deno is required to run the development server.
+
+Install Dependencies
+```sh
+deno install
+```
+
 Start Development server
 
 ```sh
