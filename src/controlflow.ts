@@ -12,7 +12,7 @@ export type ShowProps<T> = {
 Show children if `when` prop is true, otherwise show `fallback`.
 @group Components
 */
-export function Show<T>(props:ShowProps<T>) {
+export function Show<T>(props:any) {
   const condition = memo(()=>props.when)
   return memo(()=>{
     const c = condition()
@@ -43,7 +43,7 @@ export type ListProps<T> = {
 List
 @group Components
 */
-export function List<T>(props:ListProps<T>) {
+export function List<T>(props:any) {
   const fallback = "fallback" in props && { fallback: () => props.fallback }
   const list = props.each
   const cb:any = (props.children as any)?.call ? props.children : (v:any)=>v
