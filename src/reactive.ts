@@ -301,36 +301,30 @@ export function wrap<T>(s:S<Record<string,T>>, k:()=>string): S<T>
 export function wrap<T>(s:S<Array<T>>|S<Record<string,T>>, k:number|string|(()=>number)|(()=>string)): S<T> {
   const t = typeof k
   if (t === 'number') {
-    return ((...a:T[]) => {
+    return (...a) => {
       const b = s()
       return a.length ? s(b.toSpliced(k, 1, a[0])).at(k) : b.at(k)
-    }) as S<T>
+    }
   } else if (t === 'string') {
-    return ((...a:T[]) => {
+    return (...a) => {
       if (a.length) {
         const b = s()
-        let v = a[0]
-        // if (typeof v === 'function') {
-        //   v = v()
-        // }
-        return s({...b, [k]:v})[k]
+        return s({...b, [k]:a[0]})[k]
       } else {
-        const b = s()
-        return b[k]
+        return s()[k]
       }
-    })
+    }
   } else if (t === 'function')
-    return ((...a:T[]) => {
-      console.log('yo')
+    return (...a) => {
       const i = k(), c = typeof i
       if (c==='number') return a.length ?
-        s((old) => old.toSpliced(i, 1, a[0]))[i] :
+        s(old => old.toSpliced(i, 1, a[0]))[i] :
         s()[i]
       else if (c === 'string') return a.length ?
-        s((b) => ({...b, [i]:a[0]}))[i] :
+        s(b => ({...b, [i]:a[0]}))[i] :
         s()[i]
       throw new Error('Cannot wrap signal')
-    })
+    }
   throw new Error('Cannot wrap signal')
 }
 
