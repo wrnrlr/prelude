@@ -209,7 +209,7 @@ n(3)
  */
 export function signal<T>(value:T, options?:Options<T>): Getter<T> & Setter<T> {
   const s = new Signal<T>(value,options)
-  const f = Object.assign((...args:T[]) => args.length ? s.set(args[0]) as T : s.get() as T, s)
+  const f = Object.assign((...args:T[]) => args.length ? s.set(args[(0)]) as T : s.get() as T, s)
   return f as unknown as Getter<T> & Setter<T>
 }
 
@@ -294,27 +294,43 @@ export type S<T> = Getter<T> | Setter<T>
 @param s Signal
 @param k
 */
-export function wrap<T>(s:S<Array<T>>, k:number|(()=>number)): S<T>
-export function wrap<T>(s:S<Record<string,T>>, k:string|(()=>string)): S<T>
+export function wrap<T>(s:S<Array<T>>, k:number): S<T>
+export function wrap<T>(s:S<Array<T>>, k:()=>number): S<T>
+export function wrap<T>(s:S<Record<string,T>>, k:string): S<T>
+export function wrap<T>(s:S<Record<string,T>>, k:()=>string): S<T>
 export function wrap<T>(s:S<Array<T>>|S<Record<string,T>>, k:number|string|(()=>number)|(()=>string)): S<T> {
   const t = typeof k
   if (t === 'number') {
     return ((...a:T[]) => {
-      const b = (s as Getter<Array<T>>)()
-      return (a.length) ? (s as Setter<Array<T>>)((b as any).toSpliced(k as number, 1, a[0])).at(k as number) : b.at(k as number)
+      const b = s()
+      return a.length ? s(b.toSpliced(k, 1, a[0])).at(k) : b.at(k)
     }) as S<T>
   } else if (t === 'string') {
     return ((...a:T[]) => {
-      const b = (s as Getter<Record<string,T>>)()
-      return (a.length) ? (s as Setter<Record<string,T>>)({...b, [k as string]:a[0]})[k as string] : b[k as string]
-    }) as S<T>
+      if (a.length) {
+        const b = s()
+        let v = a[0]
+        // if (typeof v === 'function') {
+        //   v = v()
+        // }
+        return s({...b, [k]:v})[k]
+      } else {
+        const b = s()
+        return b[k]
+      }
+    })
   } else if (t === 'function')
     return ((...a:T[]) => {
-      const i = (k as ()=>string|number)(), c = typeof i
-      if (c==='number') return a.length ? (s as Setter<Array<T>>)((old:any) => old.toSpliced(i, 1, a[0]))[i as number] : (s as Getter<Array<T>>)()[i as number]
-        else if (c === 'string') return a.length ? (s as Setter<Record<string,T>>)((b) => ({...b, [i]:a[0]}))[i as string] : (s as Getter<Record<string,T>>)()[i]
+      console.log('yo')
+      const i = k(), c = typeof i
+      if (c==='number') return a.length ?
+        s((old) => old.toSpliced(i, 1, a[0]))[i] :
+        s()[i]
+      else if (c === 'string') return a.length ?
+        s((b) => ({...b, [i]:a[0]}))[i] :
+        s()[i]
       throw new Error('Cannot wrap signal')
-    }) as S<T>
+    })
   throw new Error('Cannot wrap signal')
 }
 
