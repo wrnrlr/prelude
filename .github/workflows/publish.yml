@@ -37,17 +37,18 @@ jobs:
       - name: Build
         run: deno task build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      # Moving artifacts, website and docs into their own project...
+      # - name: Setup Pages
+        # uses: actions/configure-pages@v5
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './www/dist'
+      # - name: Upload artifact
+        # uses: actions/upload-pages-artifact@v3
+        # with:
+          # path: './www/dist'
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      # - name: Deploy to GitHub Pages
+        # id: deployment
+        # uses: actions/deploy-pages@v4
 
       # - name: Setup NPM
       #   run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /home/runner/.npmrc
