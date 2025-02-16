@@ -1,11 +1,10 @@
 import {runtime} from '../src/runtime.ts'
 import {hyperscript} from '../src/hyperscript.ts'
 import {signal,root} from '../src/reactive.ts'
-import {JSDOM} from 'jsdom'
+import { Window } from 'happy-dom'
 import {assertEquals} from '@std/assert'
 
-const {window} = new JSDOM('<!DOCTYPE html>', {runScripts:'dangerously'})
-const {document,MouseEvent} = window
+const window = new Window
 const r = runtime(window), h = hyperscript(r)
 
 function testing(name, props, f=props) {
@@ -13,7 +12,7 @@ function testing(name, props, f=props) {
     let disposer
     return root(dispose => {
       disposer = () => {
-        document.body.textContent = ''
+        window.document.body.textContent = ''
         r.clearDelegatedEvents()
         dispose()
       }
@@ -25,7 +24,7 @@ function testing(name, props, f=props) {
 
 function assertHTML(t, e, msg) { assertEquals(t().outerHTML, e, msg) }
 
-testing('h with basic element', {skip:true}, async test => {
+testing('h with basic element', async test => {
   await test('empty tag', () => assertHTML(h(''), '<div></div>'))
   await test('tag with id', () => assertHTML(h('#a'), '<div id="a"></div>'))
   await test('tag with class', () => assertHTML(h('.a'), '<div class="a"></div>'))
@@ -63,7 +62,7 @@ function assertText(t, e, msg) { assertEquals(t(), e, msg) }
   // await test('signal fragment', () => assertText(h([()=>1]), '1'))
 // })
 
-testing('h with reactive content', {skip:true}, async test => {
+testing('h with reactive content', async test => {
   await test('higher-order component', () => {
     const Hi = p => h('b',['Hi ',p.name]),
       name = signal('An'),

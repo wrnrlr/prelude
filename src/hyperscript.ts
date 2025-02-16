@@ -1,151 +1,133 @@
 // @ts-nocheck:
-import {untrack} from './reactive.ts'
-import type {Properties,BooleanAttributes,DelegatedEvents,DOMElements, Mountable} from './constants.ts'
-import type {Runtime,$RUNTIME} from './runtime.ts'
+import type {DOMElements} from './constants.ts'
+import type {Runtime} from './runtime.ts'
 
 const ELEMENT: unique symbol = Symbol(), {isArray} = Array
 
-export type PropsKeys = typeof Properties extends Set<infer K> ? K : never;
-export type BooleanProps = typeof BooleanAttributes extends Set<infer K> ? K : never;
-export type HandlerProps = typeof DelegatedEvents extends Set<infer K> ? K : never;
-export type ChildProps = {children?:any[]}
-
-export type ElementProps = BooleanProps & HandlerProps & ChildProps & {class: string}
-export type ComponentProps = { children?:Child }
-
-/**
- * @group Hyperscript
- */
-export type Props = {}
-
-type AllProps = ElementProps | ComponentProps
-
-type EmptyProps = Record<string,never>
-
-/**
-@group Hyperscript
-*/
-export type HyperScript = {
-  // (children:Child[]): View
-
-  (element:Tag, props:ElementProps, children:Child): View
-  (element:Tag, props:ElementProps): View
-  (element:Tag, children:Child): View
-  (element:Tag): View
-
-  <T,K>(element:Component<T & {children:K}>, props:T, children:K): View
-  <T>(element:Component<T>, props:T): View
-  <K>(element:Component<{children:K}>, children:K): View
-  (element:Component<undefined>): View
-}
-
-/**
- * @group Hyperscript
- */
-export type Child = { call:any } | Child[] | string | number | symbol | bigint | boolean | Record<string,unknown> | {():Child, [ELEMENT]:boolean}
-/**
- * @group Hyperscript
- */
-export type View = {():void, [ELEMENT]?:boolean}
-/**
- * @group Hyperscript
- */
-export type Component<T> = {(props:T): Mountable, [ELEMENT]?: Runtime}
-/**
- * @group Hyperscript
- */
+export type Mountable = View[] | HTMLElement | Document | ShadowRoot | DocumentFragment | Node | string | number | bigint | symbol;
+export type Component<T> = (props:T)  => Mountable
 export type Tag = typeof DOMElements extends Set<infer K> ? K : never;
+export type Child = { ():Child } | Element | Child[] | string | number | symbol | bigint | boolean | Record<string,unknown> | {():Child, [ELEMENT]:boolean}
+export type View = {():void, [ELEMENT]?:boolean}
 
-const Fragment:Component<Props> = <T extends Props>(props:T):Mountable => (props as any).children
+// export type PropsKeys = typeof Properties extends Set<infer K> ? K : never;
+// export type BooleanProps = typeof BooleanAttributes extends Set<infer K> ? K : never;
+// export type HandlerProps = typeof DelegatedEvents extends Set<infer K> ? K : never;
+// export type ChildProps = {children?:any[]}
+// export type ElementProps = BooleanProps & HandlerProps & ChildProps & {class: string}
+// export type ComponentProps = { children?:Child }
+// export type Props = Record<string, any>
+// type AllProps = ElementProps | ComponentProps
+// type EmptyProps = Record<string,never>
+// const Fragment:Component<Props> = <T extends Props>(props:T):Mountable => (props as any).children
+
+export type TagParser = <T extends string>(s:T) => {name:string,id?:string,classes:string[],namespace?:string}
 
 /**
-
 @param r
 @param patch
 @group Hyperscript
 */
-export function hyperscript(r:Runtime, patch?:any):HyperScript {
+export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
 
-  function item<T extends Props>(e: Element, c: Child, m?: null) {
+  function item(e: Element, c: string, m?: null): void
+  function item(e: Element, c: number, m?: null): void
+  function item(e: Element, c: Element, m?: null): void
+  function item(e: Element, c: Child, m?: null): void
+  function item(e: Element, c: Child, m?: null): void {
     if (c===null) return
+    const t = typeof c
     if (isArray(c))
       for (const child of c)
         item(e, child, m)
-    else if (typeof c === 'object' && r.isChild(c))
+    else if (t === 'object' && r.isChild(c))
       r.insert(e, c, m)
-    else if (typeof c==='string')
-      (e as Element).appendChild(r.text(c))
-    else if ((c as any).call) {
-      while ((c as any)[ELEMENT]?.call) c = (c as any)()
+    else if (t === 'string')
+      e.appendChild(r.text((c as string)))
+    else if (t === 'function') {
+      // while (c[ELEMENT]?.call) c = (c as any)()
       r.insert(e, c, m)
-    } else (e as Element).appendChild(r.text(c.toString()))
+    } else e.appendChild(r.text(c.toString()))
   }
 
-  return function h<T,K=unknown>(
-    element:Component<T&{children:K}>|Tag, // , Child[]
-    second?:T|K|Child,
-    third?:K|Child
+  function h(first: Tag): View
+  function h<P>(first: Tag, second: P): View
+  function h<C extends Child>(first: Tag, second: C): View
+  function h<C extends Child, P>(first: Tag, second: P, third: C): View
+
+  function h(first: Component<Record<string,never>>): View
+  function h<P extends Record<string, unknown>>(first: Component<P>, second: P): View
+  function h<C extends Child>(first: Component<{children:C}>, second: C): View
+  function h<P extends Record<string, unknown>, C extends Child>(first: Component<P & {children:C}>, second:P, third:C): View
+
+  function h<P extends Record<string,unknown>, C extends Child>(
+    first: Tag | Component<P>,
+    second?: P | C,
+    third?: C
   ): View {
-    let props: T
+    let props: P
     let children: Child
+
+    const t1 = typeof first
 
     if (typeof second === 'object' && !isArray(second)) {
       children = (third as Child) || [];
-      props = ((second ?? {}) as T&{children:K})
+      props = ((second ?? {}) as P & {children:C})
     } else {
       children = (second as Child) || []
-      props = {} as T&{children:K}
+      props = {} as P & {children:C}
     }
 
     let ret:View
 
-    if ((element as Component<T>).call) {
-      let e:any
+    if (t1 === 'string') {
+      const tag = parseTag(first as Tag)
+      const multiExpression = detectMultiExpression(children) ? null : undefined
+      const e = r.element(tag.name)
+      const props2 = props as P
+      if (tag.id) e.setAttribute('id',tag.id)
+      if (tag.classes?.length) {
+        const cd = Object.getOwnPropertyDescriptor(props2,'class') ?? ({value:'',writable:true,enumerable:true});
+        (props2 as any).class = (cd.value?.call) ?
+          () => [...tag.classes,...(cd.value()??'').split(' ')].filter(c=>c).join(' ') :
+          [...tag.classes,...(cd.value??'').split(' ')].filter(c=>c).join(' ')
+      }
+      // if (patch) patch(props2)
+      let dynamic = false
+      const d = Object.getOwnPropertyDescriptors(props2)
+      for (const k in d) {
+        if (k !== 'ref' && !k.startsWith('on') && d[k].value?.call) {
+          dynamicProperty(props2, k)
+          dynamic = true
+        } else if (d[k].get) dynamic = true
+      }
+      (dynamic ? r.spread : r.assign) (e, props2, !!(children as Child[])?.length)
+      item(e, children, multiExpression)
+      ret = () => e
+    } else {
       const d = Object.getOwnPropertyDescriptors(props)
       if (children) (props as any).children = children
       for (const k in d) {
         if (isArray(d[k].value)) {
-          const list:any[] = d[k].value;
+          const list = d[k].value;
           (props as any)[k] = () => {
             for (let i = 0; i < list.length; i++)
               while (list[i][ELEMENT]) list[i] = list[i]()
             return list
           }
-          dynamicProperty(props as any, k)
-        } else if (d[k].value?.call && !d[k].value.length) { // A function with zero arguments
-          dynamicProperty(props as any, k)
+          dynamicProperty(props, k)
+        } else if (typeof d[k].value==='function' && !d[k].value.length) { // A function with zero arguments
+          dynamicProperty(props, k)
         }
       }
-      e = untrack(()=>(element as Component<T&{children:K}>)(props as T&{children:K}))
-      ret = () => e
-    } else {
-      const tag = parseTag(element as Tag)
-      const multiExpression = detectMultiExpression(children) ? null : undefined
-      const e = r.element(tag.name)
-      const props2 = props as T
-      if (tag.id) e.setAttribute('id',tag.id)
-      if (tag.classes?.length) {
-        const cd = Object.getOwnPropertyDescriptor(props2,'class') ?? ({value:'',writable:true,enumerable:true} as any);
-        (props2 as any).class = (cd.value?.call) ?
-          () => [...tag.classes,...(cd.value()??'').split(' ')].filter(c=>c).join(' ') :
-          [...tag.classes,...(cd.value??'').split(' ')].filter(c=>c).join(' ')
-      }
-      if (patch) patch(props2)
-      let dynamic = false
-      const d = Object.getOwnPropertyDescriptors(props2)
-      for (const k in d) {
-        if (k !== 'ref' && !k.startsWith('on') && d[k].value?.call) {
-          dynamicProperty(props2 as any, k)
-          dynamic = true
-        } else if (d[k].get) dynamic = true
-      }
-      (dynamic ? r.spread : r.assign) (e, props2, !!(children as Child[])?.length)
-      item(e,children as any,multiExpression)
+      const e = r.component(() => (first as any)(props))
       ret = () => e
     }
     ret[ELEMENT] = true
     return ret
   }
+
+  return h
 }
 
 function detectMultiExpression(list:any):boolean {
@@ -159,7 +141,7 @@ function detectMultiExpression(list:any):boolean {
 }
 
 // ^([a-zA-Z]\w*)?(#[a-zA-Z][-\w]*)?(.[a-zA-Z][-\w]*)*
-function parseTag(s:string):{name:string,id?:string,classes:string[]} {
+export function parseHtmlTag(s:Tag) {
   const classes:string[] = [];
   let id:string|undefined = undefined, i:number
 

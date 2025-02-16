@@ -5,12 +5,10 @@ export {nbsp} from './constants.ts'
 export {Show,List} from './controlflow.ts'
 export {runtime, type Runtime} from './runtime.ts'
 import {runtime, type Runtime} from './runtime.ts'
-export {hyperscript,type HyperScript,type Child,type Props,type Tag,type View,type Component} from './hyperscript.ts'
-import {type HyperScript, hyperscript} from './hyperscript.ts'
+export {hyperscript,type Child,type Tag,type View,type Component} from './hyperscript.ts'
+import {hyperscript, parseHtmlTag} from './hyperscript.ts'
 export {Router} from './router.js'
 export {resource,makeAbortable,abortable} from './resource.js'
-// export {Input,Table} from './components.js'
-// export * from './canvas.js'
 
 const r:Runtime = /*#__PURE__*/ (typeof window === 'object') ? runtime(window as any) : undefined as any
 
@@ -29,7 +27,7 @@ h(Input,{onInput:e => {}})
 ```
 @group Hyperscript
 */
-const h:HyperScript = /*#__PURE__*/ r ? hyperscript(r) : undefined
+const h = /*#__PURE__*/ hyperscript(r, parseHtmlTag)
 
 const render = /*#__PURE__*/ r?.render
 

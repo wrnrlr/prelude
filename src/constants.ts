@@ -1,4 +1,3 @@
-// @ts-nocheck:
 /**
 * Non-breakable space in Unicode
 * @group Utils
@@ -6,15 +5,14 @@
 export const nbsp:string = '\u00A0'
 
 export declare type Window = { document: Document;  SVGElement: typeof SVGElements}
-export declare type Elem = any
-declare type SVGElement = any
-declare type Document = any
-declare type ShadowRoot = any
-declare type DocumentFragment = any
-export declare type Node = any
+// export declare type Elem = any
+// declare type SVGElement = any
+// declare type Document = any
+// declare type ShadowRoot = any
+// declare type DocumentFragment = any
+// export declare type Node = any
 
-export type Mountable = Elem | Document | ShadowRoot | DocumentFragment | Node;
-type ExpandableNode = Node & { [key: string]: unknown };
+// type ExpandableNode = Node & { [key: string]: unknown };
 
 // type Expect<T extends true> = T;
 // type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false;
@@ -332,26 +330,11 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'details',
   'slot',
   'template',
-  // 'acronym',
-  // 'applet',
-  // 'basefont',
-  // 'bgsound',
-  // 'big',
-  // 'blink',
-  // 'center',
   'content',
-  // 'dir',
-  // 'font',
   'frame',
-  // 'frameset',
   'hgroup',
   'image',
-  // 'keygen',
-  // 'marquee',
   'menuitem',
-  // 'nobr',
-  // 'noembed',
-  // 'noframes',
   'plaintext',
   'rb',
   'rtc',
@@ -364,26 +347,20 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'abbr',
   'acronym',
   'address',
-  // 'applet',
   'area',
   'article',
   'aside',
   'audio',
   'b',
   'base',
-  // 'basefont',
   'bdi',
   'bdo',
-  // 'bgsound',
-  // 'big',
-  // 'blink',
   'blockquote',
   'body',
   'br',
   'button',
   'canvas',
   'caption',
-  // 'center',
   'cite',
   'code',
   'col',
@@ -396,20 +373,15 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'details',
   'dfn',
   'dialog',
-  // 'dir',
   'div',
   'dl',
   'dt',
   'em',
-  // 'embed',
   'fieldset',
   'figcaption',
   'figure',
-  // 'font',
   'footer',
   'form',
-  // 'frame',
-  // 'frameset',
   'head',
   'header',
   'hgroup',
@@ -422,7 +394,6 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'input',
   'ins',
   'kbd',
-  // 'keygen',
   'label',
   'legend',
   'li',
@@ -430,15 +401,9 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'main',
   'map',
   'mark',
-  // 'marquee',
-  // 'menu',
-  // 'menuitem',
   'meta',
   'meter',
   'nav',
-  // 'nobr',
-  // 'noembed',
-  // 'noframes',
   'noscript',
   'object',
   'ol',
@@ -446,19 +411,14 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'option',
   'output',
   'p',
-  // 'param',
   'picture',
-  // 'plaintext',
   'portal',
   'pre',
   'progress',
   'q',
-  // 'rb',
   'rp',
   'rt',
-  // 'rtc',
   'ruby',
-  // 's',
   'samp',
   'script',
   'section',
@@ -467,9 +427,7 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'slot',
   'small',
   'source',
-  // 'spacer',
   'span',
-  // 'strike',
   'strong',
   'style',
   'sub',
@@ -487,13 +445,10 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'title',
   'tr',
   'track',
-  // 'tt',
   'u',
   'ul',
-  // 'var',
   'video',
   'wbr',
-  // 'xmp',
   'input',
   'h1',
   'h2',
@@ -502,6 +457,109 @@ const DOMElements:Set<string> = /*#__PURE__*/ new Set([
   'h5',
   'h6'
 ]);
+
+export const SelfClosingTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr', 'command', 'keygen', 'menuitem', 'frame'])
+
+export const DepricatedTags = new Set([
+  'acronym',
+  'applet',
+  'basefont',
+  'bgsound',
+  'big',
+  'blink',
+  'center',
+  'dir',
+  'font',
+  'frameset',
+  'keygen',
+  'marquee',
+  'nobr',
+  'noembed',
+  'noframes',
+  'applet',
+  'basefont',
+  'bgsound',
+  'big',
+  'blink',
+  'center',
+  'dir',
+  'embed',
+  'font',
+  'frame',
+  'frameset',
+  'keygen',
+  'marquee',
+  'menu',
+  'menuitem',
+  'nobr',
+  'noembed',
+  'noframes',
+  'param',
+  'plaintext',
+  'rb',
+  'rtc',
+  's',
+  'spacer',
+  'strike',
+  'tt',
+  'var',
+  'xmp'
+])
+
+// data-*
+// anchor (experimental, not standard)
+// virtualkeyboardpolicyExperimental
+
+export const GlobalAttributes = [
+  'src',
+  'id',
+  'class',
+  'style',
+  'title',
+  'lang',
+  'dir',
+  'hidden',
+  'tabindex',
+  'accesskey',
+  'contenteditable',
+  'spellcheck',
+  'draggable',
+  'translate',
+] as const
+
+export const AllAttributes = [
+  'accesskey',
+  'autocapitalize',
+  'autocorrect',
+  'autofocus',
+  'class',
+  'contenteditable',
+  'dir',
+  'draggable',
+  'enterkeyhint',
+  'exportparts',
+  'hidden',
+  'id',
+  'inert',
+  'inputmode',
+  'is',
+  'itemid',
+  'itemprop',
+  'itemref',
+  'itemscope',
+  'itemtype',
+  'lang',
+  'nonce',
+  'part',
+  'popover',
+  'slot',
+  'spellcheck',
+  'style',
+  'tabindex',
+  'title',
+  'translate',
+  'writingsuggestions',
+]
 
 export {
   BooleanAttributes,

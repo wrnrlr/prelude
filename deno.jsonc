@@ -3,9 +3,9 @@
   "version": "0.1.9",
   "exports": "./src/mod.ts",
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
     "checkJs": false,
-    "noImplicitThis": false,
+    // "noImplicitThis": false,
     "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
   },
   "imports": {
@@ -14,6 +14,7 @@
     "@std/path": "jsr:@std/path@^1.0.6",
     "@std/testing": "jsr:@std/testing@^0.225.3",
     "jsdom": "npm:jsdom",
+    "happy-dom": "npm:happy-dom",
     "typedoc": "npm:typedoc@^0.26.6",
     "vite": "npm:vite@^5.4.9",
     "esbuild": "npm:esbuild@^0.24.0"
@@ -21,12 +22,18 @@
   "tasks": {
     "dev": "deno run -A npm:vite --config www/vite.config.js",
     "test": "deno test -A ./test/*.[jt]s",
-    "docs": "deno run -A npm:typedoc --options www/typedoc.json",
-    "build": "deno run -A npm:vite build --mode production --config www/vite.config.js",
+    // "docs": "deno run -A npm:typedoc --options www/typedoc.json",
+    // "build": "deno run -A npm:vite build --mode production --config www/vite.config.js",
     "release": "deno publish --allow-slow-types --allow-dirty && npm publish --access public",
-    "clean": "rm -rf dist/ www/dist www/docs"
+    // "clean": "rm -rf dist/ www/dist www/docs"
   },
   "lint": {
     "include": ["src"]
+  },
+  "fmt": {
+    "lineWidth": 120,
+    "indentWidth": 2,
+    "semiColons": false,
+    "singleQuote": true
   }
 }

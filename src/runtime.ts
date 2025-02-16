@@ -1,7 +1,7 @@
 // @ts-nocheck:
 import {effect,untrack,root} from './reactive.ts'
 import {SVGNamespace,SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
-import type {Window,Mountable,Elem,Node} from './constants.ts'
+import type {Mountable,Elem,Node} from './constants.ts'
 
 const {isArray} = Array
 export const $RUNTIME = Symbol()
@@ -17,6 +17,7 @@ export type Runtime = {
   spread(node:Elem, accessor:any, skipChildren?: boolean): void;
   assign(node:Elem, props:any, skipChildren?:boolean): void;
   element(name:string): any;
+  component(fn:()=>unknown): any
   text(s:string): any;
   isChild(a:any): boolean;
   clearDelegatedEvents():void
@@ -33,8 +34,12 @@ export function runtime(window:Window):Runtime {
     element = (name:string) => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
     text = (s:string) => document.createTextNode(s)
 
-  function isChild(a:unknown):boolean {
+  function isChild(a:unknown): a is document.Element {
     return a instanceof document.Element
+  }
+
+  function component(fn:()=>unknown) {
+    return untrack(fn)
   }
 
   function render(code:()=>void, element:Elem, init?:any) {
@@ -248,7 +253,7 @@ export function runtime(window:Window):Runtime {
     }
   }
 
-  return {render,insert,spread,assign,element,text,isChild,clearDelegatedEvents}
+  return {render,component,insert,spread,assign,element,text,isChild,clearDelegatedEvents}
 }
 
 const $$EVENTS = "_$DX_DELEGATE"

@@ -82,7 +82,7 @@ describe('memo',{skip:true},() => {
   describe('memo with initial value',() => {})
 })
 
-describe('wrap',()=>{
+describe('wrap', ()=>{
   describe('wrap singal of array', () => {
     const all = signal(['a','b']), first = wrap(all,0)
     assertEquals(first(),'a')
@@ -95,6 +95,7 @@ describe('wrap',()=>{
     assertEquals(name(),'a')
     assertEquals(name('A'),'A')
     assertEquals(name(),'A')
+    assertEquals(all(),{name:'A'})
   })
 
   describe('wrap singal of array of objects', () => {
@@ -104,14 +105,33 @@ describe('wrap',()=>{
     assertEquals(name(),'b')
     assertEquals(name('A'),'A')
     assertEquals(name(),'A')
+    assertEquals(all(),[{name:'A'}])
   })
 
-  describe('wrap singal of object of arrays', () => {
+  describe('wrap singal of object with arrays', () => {
     const all = signal({ids:[0,1,2]}), ids = wrap(all,'id'), last = wrap(ids,-1)
     assertEquals(ids([1,2,3]),[1,2,3])
     assertEquals(ids(),[1,2,3])
     assertEquals(last(),3)
     assertEquals(last(4),4)
     assertEquals(last(),4)
+  })
+
+  describe('wrap singal of array of objects with array', () => {
+    const all = signal([{ids:[0,1,2]}]), first = wrap(all,0), ids = wrap(first,'ids'), last = wrap(ids,-1)
+    assertEquals(ids([1,2,3]),[1,2,3])
+    assertEquals(last(4),4)
+    assertEquals(all(),[{ids:[1,2,4]}])
+  })
+
+  describe('wrap singal of object with array of objects', () => {
+    const obj = signal({todos:[{done:false,name:'a'}, {done:false,name:'b'}]}), todos = wrap(obj, 'todos'), todo = wrap(todos, 0),
+      name = wrap(todo, 'name'), done = wrap(todo,'done')
+    assertEquals(done(true),true)
+    console.log('OBJ',obj())
+    effect(()=>{
+      name();done()
+    })
+    assertEquals(obj(),{todos:[{done:true,name:'a'},{done:false,name:'b'}]})
   })
 })
