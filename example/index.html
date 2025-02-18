@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<title>Todo</title>
+
+<script type="module">
+
+import {h,signal,effect,batch,wrap,render,List} from '../src/mod.ts'
+
+function Checkbox(props) {
+  // effect(()=>console.log('checkbox value ', props.value))
+  return h('input',{
+    type: 'checkbox',
+    checked: props.value,
+    onInput: e => props.value(e.target.checked)
+  })
+}
+
+function App() {
+  // const todos = signal([false])
+  const obj = signal({todos:[false]})
+  const todos = wrap(obj,'todos')
+  const first = wrap(todos, 0)
+  return [
+    h('button', {onClick:(e)=>{const old = todos(); todos([...old, false])}}, '+'),
+    h('ol', h(List, {each:()=>todos}, (value, i) =>
+      // (console.log('value',value),h('li', h(Checkbox, { value:()=>value })))
+      h('li', h(Checkbox, { value:()=>value }))
+    )),
+    h(Checkbox, { value:()=>first }),
+    h('pre.hello',()=>'todos: '+JSON.stringify(todos(),undefined,2))
+  ]
+}
+
+render(App, document.body)
+
+</script>
+
+<style>
+html {background-color:lightgray}
+ul {margin:0;padding:0}
+/* ul,li {list-style-type: none} */
+input {border-width: 0 0 1px 0; margin:0.25em}
+li>button {border:none; background:none}
+</style>
