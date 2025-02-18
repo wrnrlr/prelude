@@ -5,6 +5,8 @@ import { Window } from 'happy-dom'
 import {assertEquals} from '@std/assert'
 
 const window = new Window
+const document = window.document
+globalThis = window
 const r = runtime(window), h = hyperscript(r)
 
 function testing(name, props, f=props) {

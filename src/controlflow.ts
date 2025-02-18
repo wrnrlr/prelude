@@ -54,7 +54,7 @@ export function List<T, U >(props:{
 
 function listArray(
   list: Accessor<readonly T[] | undefined | null | false>,
-  mapFn: (v: Accessor<T>, i: Accessor<number>) => U,
+  mapFn: (v: Signal<T>, i: Accessor<number>) => U,
   options: { fallback?: Accessor<any> } = {}
 ): () => U[] {
   const items: ListItem<T>[] = [];
@@ -75,13 +75,8 @@ function listArray(
     disposeList(items)
   })
 
-  // const newItems = list.call ? list() : list
-  // (newItems)[$TRACK]; // top level tracking
-
   return () => {
-    console.log('list',list())
-    const newItems = list() || [];
-    // console.log('list', newItems)
+    const newItems = typeof list==='function' ? list() || [] : list;
     return untrack(() => {
       if (newItems.length > 0 && fallbackDisposer) {
         fallbackDisposer();
@@ -138,7 +133,6 @@ function listArray(
       }
 
       // 3) change values when indexes match
-      console.log('check change values when indexes match')
       for (j = unusedItems - 1; j >= 0; --j) {
         item = items[j]!
         oldIndex = item.index;
@@ -146,8 +140,7 @@ function listArray(
           temp[oldIndex] = mapped[oldIndex]!
           newValue = newItems[oldIndex]!
           item.value = newValue
-          console.log('List set value', newValueGetter, item.valueSetter)
-          item.valueSetter?.(newValueGetter)
+          item.valueSetter?.(newValue)
           if (--unusedItems !== j) {
             items[j] = items[unusedItems]!
             items[unusedItems] = item
@@ -166,7 +159,6 @@ function listArray(
           batch(changeBoth);
         } else {
           temp[i] = root(mapper);
-          // temp[i] = mapper()
         }
       }
 
@@ -190,30 +182,32 @@ function listArray(
   // const indexes = cb.length > 1 ? [] : null;
   function newValueGetter(_:unknown) { return newValue }
   function changeBoth() {
-    console.log('Change both', newValue)
     item!.index = i!
     item!.indexSetter?.(i)
     item!.value = newValue!
     item!.valueSetter?.(newValueGetter)
   }
   function mapper(disposer: ()=>void) {
-    const V = newValue, I = i
+    const V = newValue
+    const I = i
     const t = {value: newValue, index: I, disposer}
     items.push(t)
-    const sI = () => {t.indexSetter = I; return signal(I)}
-    // const sV = () => {
-    //   t.valueSetter = V;
-    //   // let s = signal(V)
-    //   return signal(V)
-    // }
-    let sV = () => {
+    const sI = () => { t.indexSetter = I; return signal(I) }
+    let sV = (...a) => {
       const k = I
-      console.log('sV')
-      sV = wrap(list, k)
+      sV = (...a) => {
+        if (a.length===0) {
+          const bk = list()[k]
+          return bk
+        } else {
+          const b = untrack(list)
+          return list(b.toSpliced(k, 1, a[0])).at(k)
+        }
+      }
       t.valueSetter = sV
-      return sV()
+      return sV(...a)
     }
-    return mapFn(() => sV(), () => sI())
+    return mapFn(sV, () => sI())
   }
 }
 
@@ -221,4 +215,27 @@ function disposeList(list:any[]) {
   for (let i = 0; i < list.length; i++) {
     list[i]?.disposer()
   }
+}
+
+function listArray2(
+  list: Accessor<readonly T[] | undefined | null | false>,
+  mapFn: (v: Accessor<T>, i: Accessor<number>) => U,
+) {
+  return ()=>list().map((e,i) => {
+    return mapFn(
+      (...a: args[]) => {
+        const b = untrack(list)
+        if (a.length===0) {
+          console.log(`get sV nr ${i} = "${b[i]}"`)
+          return b
+        } else {
+          console.log(`get sV nr ${i} = "${b[i]}" to "${a[0]}`)
+          return list(b.toSpliced(i, 1, a[0])).at(i)
+        }
+      },
+      () => {
+        return () => i
+      }
+    )
+  })
 }

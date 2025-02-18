@@ -1,10 +1,24 @@
 // @ts-nocheck:
 import {effect,untrack,root} from './reactive.ts'
 import {SVGNamespace,SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
-import type {Mountable,Elem,Node} from './constants.ts'
+// import type {Mountable} from './constants.ts'
 
 const {isArray} = Array
-export const $RUNTIME = Symbol()
+
+export type Mountable = HTMLElement | Document | ShadowRoot | DocumentFragment | Node | string | number | bigint | symbol;
+
+declare global {
+  interface Document {
+    '_$DX_DELEGATE'?: Record<string, Set<unknown>>
+  }
+  // interface SVGElement {}
+}
+
+// interface Element {
+//   style?: string
+// }
+
+// declare const globalThis: Document
 
 /**
 
@@ -12,10 +26,10 @@ export const $RUNTIME = Symbol()
 */
 export type Runtime = {
   // window:Window
-  render(code:()=>void, element:Elem, init:any): any;
+  render(code:()=>void, element:Element, init:any): any;
   insert(parent:Mountable, accessor:any, marker?:Node|null, init?:any): any;
-  spread(node:Elem, accessor:any, skipChildren?: boolean): void;
-  assign(node:Elem, props:any, skipChildren?:boolean): void;
+  spread(node:Element, accessor:any, skipChildren?: boolean): void;
+  assign(node:Element, props:any, skipChildren?:boolean): void;
   element(name:string): any;
   component(fn:()=>unknown): any
   text(s:string): any;
@@ -23,41 +37,52 @@ export type Runtime = {
   clearDelegatedEvents():void
 }
 
+type ClassListProps = Record<string, string|boolean>
+type StyleProps = undefined | string | Record<string, string|undefined>
+
 /**
 Create `Runtime` for `window`
 @param window
 @group Internal
 */
-export function runtime(window:Window):Runtime {
-  const document = window.document,
-    isSVG = (e:any) => e instanceof (window.SVGElement as any),
-    element = (name:string) => SVGElements.has(name) ? document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
+export function runtime(w:Window):Runtime {
+  const document = w.document
+  const isSVG = (e: unknown) => e instanceof (w.SVGElement),
+    element = (name:string) => SVGElements.has(name) ?
+      document.createElementNS("http://www.w3.org/2000/svg",name) : document.createElement(name),
     text = (s:string) => document.createTextNode(s)
 
-  function isChild(a:unknown): a is document.Element {
-    return a instanceof document.Element
+  function isChild(a:unknown): a is Element {
+    return a instanceof Element
   }
 
   function component(fn:()=>unknown) {
     return untrack(fn)
   }
 
-  function render(code:()=>void, element:Elem, init?:any) {
+  function render(code: ()=>void, element:Element, init?:any): void
+  function render(code: ()=>void, element:Document, init?:any): void
+  function render(code: ()=>void, element:Element|Document, init?:any): void {
     if (!element) throw new Error("The `element` passed to `render(..., element)` doesn't exist.");
     root(() => {
-      if (element === document) code()
-      else insert(element, code(), element.firstChild ? null : undefined, init)
+      if (element instanceof Document) code()
+      else insert(element as Element, code(), element.firstChild ? null : undefined, init)
     })
   }
 
-  function insert(parent:Mountable, accessor:any, marker?:Node|null, initial?:any) {
+  type Value = string | number | Element | Text
+  type RxValue = (()=>Value) | Value
+
+  function insert(parent: Element, accessor: string, marker?: Node|null, initial?: any): void
+  function insert(parent: Element, accessor: ()=>string, marker?: Node|null, initial?: any): void
+  function insert(parent: Element, accessor: string|(()=>string), marker?: Node|null, initial?: any): void {
     if (marker !== undefined && !initial) initial = []
-    if (!accessor.call) return insertExpression(parent, accessor, initial||[], marker)
+    if (typeof accessor !== 'function') return insertExpression(parent, accessor, initial||[], marker)
     let current = initial||[]
     effect(() => {current = insertExpression(parent, accessor(), current, marker)})
   }
 
-  function spread(node:Elem, props:any = {}, skipChildren:boolean) {
+  function spread(node:Element, props:any = {}, skipChildren:boolean) {
     const prevProps:any = {}
     if (!skipChildren) effect(() => (prevProps.children = insertExpression(node, props.children, prevProps.children)))
     effect(() => (props.ref?.call ? untrack(() => props.ref(node)) : (props.ref = node)))
@@ -65,7 +90,7 @@ export function runtime(window:Window):Runtime {
     return prevProps
   }
 
-  function assign(node:Elem, props:any, skipChildren:boolean, prevProps:any = {}, skipRef:boolean = false) {
+  function assign(node:Element, props:any, skipChildren:boolean, prevProps:any = {}, skipRef:boolean = false) {
     const svg = isSVG(node)
     props || (props = {})
     for (const prop in prevProps) {
@@ -84,22 +109,34 @@ export function runtime(window:Window):Runtime {
     }
   }
 
-  function assignProp(node:Node, prop:any, value:any, prev:any, isSVG:any, skipRef:any) {
+  function assignProp(node: Element, prop: 'style', value: StyleProps, prev: StyleProps, isSVG: boolean, skipRef: boolean): StyleProps
+  function assignProp(node: Element, prop: 'classList', value: ClassListProps, prev: ClassListProps, isSVG: boolean, skipRef: boolean): ClassListProps
+  function assignProp(node: Element, prop: 'ref', value: ()=>string, prev:string, isSVG: boolean, skipRef: false): string
+  function assignProp(node: Element, prop: string, value: string, prev: string|undefined, isSVG: boolean, skipRef: boolean): string
+  function assignProp(node: Element, prop: string, value: undefined, prev: string|undefined, isSVG: boolean, skipRef: boolean): undefined
+  function assignProp(
+    node: Element,
+    prop: 'style' | 'classList' | 'ref' | string,
+    value: StyleProps | ClassListProps | (()=>string) | string | undefined,
+    prev: StyleProps | ClassListProps | (()=>string) | string | undefined,
+    isSVG: false | boolean,
+    skipRef: boolean
+  ) {
     let isCE, isProp, isChildProp, propAlias, forceProp;
-    if (prop === "style") return style(node, value, prev);
-    if (prop === "classList") return classList(node, value, prev);
+    if (prop === 'style') return style(node, value, prev);
+    if (prop === 'classList') return classList(node, value, prev);
     if (value === prev) return prev;
-    if (prop === "ref") {
+    if (prop === 'ref') {
       if (!skipRef) value(node);
-    } else if (prop.slice(0, 3) === "on:") {
+    } else if (prop.slice(0, 3) === 'on:') {
       const e = prop.slice(3);
       prev && node.removeEventListener(e, prev);
       value && node.addEventListener(e, value);
-    } else if (prop.slice(0, 10) === "oncapture:") {
+    } else if (prop.slice(0, 10) === 'oncapture:') {
       const e = prop.slice(10);
       prev && node.removeEventListener(e, prev, true);
       value && node.addEventListener(e, value, true);
-    } else if (prop.slice(0, 2) === "on") {
+    } else if (prop.slice(0, 2) === 'on') {
       const name = prop.slice(2).toLowerCase();
       const delegate = DelegatedEvents.has(name);
       if (!delegate && prev) {
@@ -110,13 +147,13 @@ export function runtime(window:Window):Runtime {
         addEventListener(node, name, value, delegate);
         delegate && delegateEvents([name],document);
       }
-    } else if (prop.slice(0, 5) === "attr:") {
+    } else if (prop.slice(0, 5) === 'attr:') {
       setAttribute(node, prop.slice(5), value);
     } else if (
-      (forceProp = prop.slice(0, 5) === "prop:") ||
+      (forceProp = prop.slice(0, 5) === 'prop:') ||
       (isChildProp = ChildProperties.has(prop)) ||
       (!isSVG && ((propAlias = getPropAlias(prop, node.tagName)) || (isProp = Properties.has(prop)))) ||
-      (isCE = node.nodeName.includes("-"))
+      (isCE = node.nodeName.includes('-'))
     ) {
       if (forceProp) {
         prop = prop.slice(5);
@@ -126,15 +163,21 @@ export function runtime(window:Window):Runtime {
       else if (isCE && !isProp && !isChildProp) node[toPropertyName(prop)] = value;
       else node[propAlias || prop] = value;
     } else {
-      const ns = isSVG && prop.indexOf(":") > -1 && SVGNamespace[prop.split(":")[0]];
-      if (ns) setAttributeNS(node, ns, prop, value);
-      else setAttribute(node, Aliases[prop] || prop, value);
+      const ns = isSVG && prop.indexOf(':') > -1 && SVGNamespace[prop.split(':')[0]]
+      if (ns) setAttributeNS(node, ns, prop, value)
+      else setAttribute(node, Aliases[prop] || prop, value)
     }
     return value;
   }
 
-  function insertExpression(parent:Node, value:any, current?:any, marker?:Node, unwrapArray?:any) {
-    while (current?.call) current = current();
+  function insertExpression(
+    parent: Element,
+    value: RxValue,
+    current?: RxValue|Value[],
+    marker?: Node,
+    unwrapArray?: boolean
+  ): Value|{():Value} {
+    while (typeof current === 'function') current = current();
     if (value === current) return current;
     const t = typeof value,
       multi = marker !== undefined;
@@ -152,21 +195,21 @@ export function runtime(window:Window):Runtime {
         } else node = document.createTextNode(value);
         current = cleanChildren(parent, current, marker, node);
       } else {
-        if (current !== "" && typeof current === "string") {
-          current = parent.firstChild.data = value;
+        if (current !== "" && typeof current === 'string') {
+          current = (parent.firstChild as Text).data = value;
         } else current = parent.textContent = value;
       }
-    } else if (value == null || t === "boolean") {
+    } else if (value == null || t === 'boolean') {
       current = cleanChildren(parent, current, marker);
-    } else if (t === "function") {
+    } else if (t === 'function') {
       effect(() => {
         let v = value();
-        while (typeof v === "function") v = v();
+        while (typeof v === 'function') v = v();
         current = insertExpression(parent, v, current, marker);
       });
       return () => current;
     } else if (isArray(value)) {
-      const array:any[] = [];
+      const array:Node[] = [];
       const currentArray = current && isArray(current);
       if (normalizeIncomingArray(array, value, current, unwrapArray)) {
         effect(() => (current = insertExpression(parent, array, current, marker, true)));
@@ -196,20 +239,21 @@ export function runtime(window:Window):Runtime {
     return current;
   }
 
-  function normalizeIncomingArray(normalized:any, array:any, current:any, unwrap?:any):any {
+  function normalizeIncomingArray(normalized:Node[], array:Node[], current:Node[], unwrap?:boolean): boolean {
     let dynamic = false;
     for (let i = 0, len = array.length; i < len; i++) {
       let item = array[i]
       const prev = current && current[normalized.length];
-      if (item == null || item === true || item === false) {
-        // matches null, undefined, true or false skip
-      } else if (typeof item === "object" && item.nodeType) {
+      // if (item == null || item === true || item === false) {
+      //   // matches null, undefined, true or false skip
+      // } else
+      if (typeof item === 'object' && item.nodeType) {
         normalized.push(item);
       } else if (isArray(item)) {
         dynamic = normalizeIncomingArray(normalized, item, prev) || dynamic;
       } else if (item.call) {
         if (unwrap) {
-          while (typeof item === "function") item = item();
+          while (typeof item === 'function') item = item();
           dynamic = normalizeIncomingArray(
               normalized,
               isArray(item) ? item : [item],
@@ -228,8 +272,13 @@ export function runtime(window:Window):Runtime {
     return dynamic;
   }
 
-  function cleanChildren(parent:any, current?:any, marker?:Node, replacement?:any):any {
-    if (marker === undefined) return (parent.textContent = "");
+  function cleanChildren(
+    parent: Element,
+    current?: Node[],
+    marker?: Node|null,
+    replacement?: boolean
+  ): string | Node[] {
+    if (marker === undefined) return (parent.textContent = '');
     const node = replacement || document.createTextNode('');
     if (current.length) {
       let inserted = false;
@@ -247,9 +296,9 @@ export function runtime(window:Window):Runtime {
   }
 
   function clearDelegatedEvents() {
-    if (document[$$EVENTS]) {
-      for (const name of document[$$EVENTS].keys()) document.removeEventListener(name, eventHandler);
-      delete document[$$EVENTS];
+    if (globalThis[$$EVENTS]) {
+      for (const name of globalThis[$$EVENTS].keys()) document.removeEventListener(name, eventHandler);
+      delete globalThis[$$EVENTS];
     }
   }
 
@@ -258,7 +307,7 @@ export function runtime(window:Window):Runtime {
 
 const $$EVENTS = "_$DX_DELEGATE"
 
-function delegateEvents(eventNames:string[], document:any) {
+function delegateEvents(eventNames:string[], document:Document) {
   const e = document[$$EVENTS] || (document[$$EVENTS] = new Set());
   for (let i = 0, l = eventNames.length; i < l; i++) {
     const name = eventNames[i];
@@ -269,13 +318,13 @@ function delegateEvents(eventNames:string[], document:any) {
   }
 }
 
-function eventHandler(e:any) {
+function eventHandler(e: Event) {
   const key = `$$${e.type}`
   let node = (e.composedPath && e.composedPath()[0]) || e.target
   // reverse Shadow DOM retargetting
-  if (e.target !== node) Object.defineProperty(e, "target", {configurable: true, value: node})
+  if (e.target !== node) Object.defineProperty(e, 'target', {configurable: true, value: node})
   // simulate currentTarget
-  Object.defineProperty(e, "currentTarget", {configurable: true, get() {return node || document}})
+  Object.defineProperty(e, 'currentTarget', {configurable: true, get() {return node || document}})
   while (node) {
     const handler = node[key];
     if (handler && !node.disabled) {
@@ -287,7 +336,7 @@ function eventHandler(e:any) {
   }
 }
 
-function setAttribute(node:Node, name:string, value?:string):any {
+function setAttribute(node: Element, name: string, value?: string): undefined {
   value===undefined || value===null ? node.removeAttribute(name) : node.setAttribute(name, value)
 }
 
@@ -295,7 +344,7 @@ function setAttributeNS(node:Node, ns:string, name:string, value?:string):any {
   value ? node.setAttributeNS(ns, name, value) : node.removeAttributeNS(ns, name)
 }
 
-function addEventListener(node:Node, name:any, handler:any, delegate:any):any {
+function addEventListener(node: Element, name: string, handler:((e:Event)=>void), delegate:boolean): void {
   if (delegate) {
     if (isArray(handler)) {
       node[`$$${name}`] = handler[0];
@@ -303,35 +352,43 @@ function addEventListener(node:Node, name:any, handler:any, delegate:any):any {
     } else node[`$$${name}`] = handler;
   } else if (isArray(handler)) {
     const handlerFn = handler[0];
-    node.addEventListener(name, (handler[0] = (e:any) => handlerFn.call(node, handler[1], e)));
+    node.addEventListener(name, (handler[0] = (e:Event) => handlerFn.call(node, handler[1], e)));
   } else node.addEventListener(name, handler);
 }
 
-function classList(node:Node, value:any, prev:any = {}):any {
+function classList(
+  node: Element,
+  value: ClassListProps,
+  prev: ClassListProps = {}
+): ClassListProps {
   const classKeys = Object.keys(value || {}),
     prevKeys = Object.keys(prev);
   let i, len;
   for (i = 0, len = prevKeys.length; i < len; i++) {
     const key = prevKeys[i];
-    if (!key || key === "undefined" || value[key]) continue;
+    if (!key || key === 'undefined' || value[key]) continue;
     toggleClassKey(node, key, false);
     delete prev[key];
   }
   for (i = 0, len = classKeys.length; i < len; i++) {
     const key = classKeys[i],
       classValue = !!value[key];
-    if (!key || key === "undefined" || prev[key] === classValue || !classValue) continue;
+    if (!key || key === 'undefined' || prev[key] === classValue || !classValue) continue;
     toggleClassKey(node, key, true);
     prev[key] = classValue;
   }
   return prev;
 }
 
-function style(node:Node, value:any, prev:any) {
-  if (!value) return prev ? setAttribute(node, "style") : value;
+function style(
+  node: Element,
+  value: StyleProps,
+  prev: StyleProps
+): StyleProps {
+  if (!value) return prev ? setAttribute(node, 'style', undefined) : value;
   const nodeStyle = node.style;
-  if (typeof value === "string") return (nodeStyle.cssText = value);
-  if (typeof prev === "string") nodeStyle.cssText = prev = undefined
+  if (typeof value === 'string') return (nodeStyle.cssText = value);
+  if (typeof prev === 'string') nodeStyle.cssText = prev = undefined
   if (!prev) prev = {}
   if (!value) value = {}
   let v, s;
@@ -353,7 +410,7 @@ function toPropertyName(name:string):string {
   return name.toLowerCase().replace(/-([a-z])/g, (_:unknown, w:string) => w.toUpperCase());
 }
 
-function toggleClassKey(node:Node, key:string, value:boolean) {
+function toggleClassKey(node: Element, key:string, value:boolean) {
   const classNames = key.trim().split(/\s+/)
   for (let i = 0, nameLen = classNames.length; i < nameLen; i++)
     node.classList.toggle(classNames[i], value)
@@ -365,7 +422,7 @@ function appendNodes(parent:Node, array:Node[], marker:null|Node = null) {
 }
 
 // Slightly modified version of: https://github.com/WebReflection/udomdiff/blob/master/index.js
-function reconcileArrays(parentNode:Node, a:Node[], b:Node[]) {
+function reconcileArrays(parentNode:Node, a:Element[], b:Element[]) {
   const bLength = b.length
   let aEnd = a.length,
     bEnd = bLength,

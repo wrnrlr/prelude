@@ -4,8 +4,7 @@
   "exports": "./src/mod.ts",
   "compilerOptions": {
     "strict": true,
-    "checkJs": false,
-    // "noImplicitThis": false,
+    // "checkJs": false,
     "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
   },
   "imports": {
@@ -13,8 +12,7 @@
     "@std/fs": "jsr:@std/fs@^1.0.5",
     "@std/path": "jsr:@std/path@^1.0.6",
     "@std/testing": "jsr:@std/testing@^0.225.3",
-    "jsdom": "npm:jsdom",
-    "happy-dom": "npm:happy-dom",
+    "happy-dom": "npm:happy-dom@^17.1.0",
     "typedoc": "npm:typedoc@^0.26.6",
     "vite": "npm:vite@^5.4.9",
     "esbuild": "npm:esbuild@^0.24.0"

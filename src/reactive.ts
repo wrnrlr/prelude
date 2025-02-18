@@ -303,14 +303,12 @@ export function wrap<T>(s:S<Array<T>>|S<Record<string,T>>, k:number|string|(()=>
   if (t === 'number') {
     return (...a) => {
       const b = s()
-      // console.log('wrapn', s, b,k)
       return a.length ? s(b.toSpliced(k, 1, a[0])).at(k) : b.at(k)
     }
   } else if (t === 'string') {
     return (...a) => {
       if (a.length) {
         const b = s()
-        console.log('wraps', s, b, k)
         return s({...b, [k]:a[0]})[k]
       } else {
         return s()[k]

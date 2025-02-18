@@ -1,4 +1,3 @@
-// @ts-nocheck:
 import type {DOMElements} from './constants.ts'
 import type {Runtime} from './runtime.ts'
 
@@ -68,8 +67,6 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
     let props: P
     let children: Child
 
-    const t1 = typeof first
-
     if (typeof second === 'object' && !isArray(second)) {
       children = (third as Child) || [];
       props = ((second ?? {}) as P & {children:C})
@@ -80,15 +77,16 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
 
     let ret:View
 
+    const t1 = typeof first
     if (t1 === 'string') {
       const tag = parseTag(first as Tag)
       const multiExpression = detectMultiExpression(children) ? null : undefined
       const e = r.element(tag.name)
-      const props2 = props as P
+      const props2 = props as P & {class?: string|(()=>string)}
       if (tag.id) e.setAttribute('id',tag.id)
       if (tag.classes?.length) {
         const cd = Object.getOwnPropertyDescriptor(props2,'class') ?? ({value:'',writable:true,enumerable:true});
-        (props2 as any).class = (cd.value?.call) ?
+        props2.class = (cd.value?.call) ?
           () => [...tag.classes,...(cd.value()??'').split(' ')].filter(c=>c).join(' ') :
           [...tag.classes,...(cd.value??'').split(' ')].filter(c=>c).join(' ')
       }
@@ -96,12 +94,12 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
       let dynamic = false
       const d = Object.getOwnPropertyDescriptors(props2)
       for (const k in d) {
-        if (k !== 'ref' && !k.startsWith('on') && d[k].value?.call) {
+        if (k !== 'ref' && !k.startsWith('on') && typeof d[k].value === 'function') {
           dynamicProperty(props2, k)
           dynamic = true
         } else if (d[k].get) dynamic = true
       }
-      (dynamic ? r.spread : r.assign) (e, props2, !!(children as Child[])?.length)
+      (dynamic ? r.spread : r.assign) (e, props2, !!(children as any)?.length)
       item(e, children, multiExpression)
       ret = () => e
     } else {
@@ -120,7 +118,7 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
           dynamicProperty(props, k)
         }
       }
-      const e = r.component(() => (first as any)(props))
+      const e = r.component(() => (first as Component<P>)(props))
       ret = () => e
     }
     ret[ELEMENT] = true
@@ -130,11 +128,11 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
   return h
 }
 
-function detectMultiExpression(list:any):boolean {
-  if (list.call) return true
-  else if (!isArray(list)) return false
-  for (const i of list) {
-    if (i.call) return true
+function detectMultiExpression(children: Child): boolean {
+  if (typeof children === 'function') return true
+  else if (!isArray(children)) return false
+  for (const i of children) {
+    if (typeof i === 'function') return true
     else if (isArray(i)) return detectMultiExpression(i)
   }
   return false
@@ -167,10 +165,10 @@ export function parseHtmlTag(s:Tag) {
   return {name:name as string,classes,id:id}
 }
 
-function dynamicProperty(props:Record<string,any>, key:string):Record<string,any> {
-  const src = props[key]
-  Object.defineProperty(props, key, {get() {return src()},enumerable:true})
-  return props
+function dynamicProperty<T>(props: Record<string, unknown>, key: string) {
+  const src = props[key] as ()=>unknown
+  Object.defineProperty(props, key, {get() {return src()}, enumerable:true})
+  // return props
 }
 
 // function tw(rules) {
