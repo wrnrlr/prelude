@@ -1,6 +1,6 @@
 // @ts-nocheck:
 import type { Child } from './hyperscript.ts'
-import {signal,untrack,batch,memo,root,wrap,onCleanup,type Signal, type Setter} from './reactive.ts'
+import {signal,untrack,batch,memo,root,onCleanup,type Signal, type Setter, type Mountable} from './reactive.ts'
 
 export type ShowProps<T> = {
   when: T,
@@ -12,7 +12,7 @@ export type ShowProps<T> = {
 Show children if `when` prop is true, otherwise show `fallback`.
 @group Components
 */
-export function Show<T>(props:any) {
+export function Show<T>(props:ShowProps) {
   const condition = memo(()=>props.when)
   return memo(()=>{
     const c = condition()
@@ -24,38 +24,45 @@ export function Show<T>(props:any) {
   })
 }
 
-type ItemHolder = {
-  index: number,
-  indexSetter?: Setter<T>,
-  value: T,
-  valueSetter?: Setter<T>,
-  disposer: ()=>void
-}
-
-export type ListProps<T> = {
-  when: T,
-  each: any,
-  children: Child | ((a:()=>T)=>void),
-  fallback: unknown
+export type ListProps<T, U extends Mountable, F = Getter | Signal> = {
+  each: F<T[]>,
+  children: (item: F<T>, index: F<number>) => U,
+  fallback?: Mountable
 }
 
 /**
 List
 @group Components
 */
-export function List<T, U >(props:{
-  each: Signal<T[]>,
-  fallback?: any,
-  children: (item: Signal<T[number]>, index: Signal<number>) => U
-}) {
+export function List<T>(
+  props: ListProps<T>
+) {
   const fallback = "fallback" in props && { fallback: () => props.fallback };
-  return memo(listArray(props.each, props.children, fallback || undefined))
+  return memo(listArray<T>(props.each, props.children, fallback || undefined))
 }
 
-function listArray(
-  list: Accessor<readonly T[] | undefined | null | false>,
-  mapFn: (v: Signal<T>, i: Accessor<number>) => U,
-  options: { fallback?: Accessor<any> } = {}
+type ItemHolder<T> = {
+  index: number,
+  indexSetter?: Getter<number>,
+  value: T,
+  valueSetter?: Setter<T>,
+  disposer: ()=>void
+}
+
+function listArray<T, U extends Mountable>(
+  list: Getter<T[]>,
+  mapFn: (v: Getter<T>, i: Getter<number>) => U,
+  options: { fallback?: Mountable } = {}
+): () => U[]
+function listArray<T, U extends Mountable>(
+  list: Signal<T[]>,
+  mapFn: (v: Signal<T>, i: Getter<number>) => U,
+  options: { fallback?: Mountable } = {}
+): () => U[]
+function listArray<T, U extends Mountable>(
+  list: Getter<T[]> | Signal<T[]>,
+  mapFn: (v: Signal<T>, i: Getter<number>) => U,
+  options: { fallback?: Mountable } = {}
 ): () => U[] {
   const items: ListItem<T>[] = [];
   let mapped: U[] = [],
@@ -215,27 +222,4 @@ function disposeList(list:any[]) {
   for (let i = 0; i < list.length; i++) {
     list[i]?.disposer()
   }
-}
-
-function listArray2(
-  list: Accessor<readonly T[] | undefined | null | false>,
-  mapFn: (v: Accessor<T>, i: Accessor<number>) => U,
-) {
-  return ()=>list().map((e,i) => {
-    return mapFn(
-      (...a: args[]) => {
-        const b = untrack(list)
-        if (a.length===0) {
-          console.log(`get sV nr ${i} = "${b[i]}"`)
-          return b
-        } else {
-          console.log(`get sV nr ${i} = "${b[i]}" to "${a[0]}`)
-          return list(b.toSpliced(i, 1, a[0])).at(i)
-        }
-      },
-      () => {
-        return () => i
-      }
-    )
-  })
 }

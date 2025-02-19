@@ -3,14 +3,14 @@ import type {Runtime} from './runtime.ts'
 
 const ELEMENT: unique symbol = Symbol(), {isArray} = Array
 
-export type Mountable = View[] | HTMLElement | Document | ShadowRoot | DocumentFragment | Node | string | number | bigint | symbol;
-export type Component<T> = (props:T)  => Mountable
+export type Mountable = View | HTMLElement | string | number | bigint | symbol | boolean | Date | Mountable[];
+export type Component<T> = ((props:T) => Mountable) | ((props:T) => Mountable[])
 export type Tag = typeof DOMElements extends Set<infer K> ? K : never;
-export type Child = { ():Child } | Element | Child[] | string | number | symbol | bigint | boolean | Record<string,unknown> | {():Child, [ELEMENT]:boolean}
+export type Child = { ():Child } | Element | Child[] | string | number | symbol | bigint | boolean | Date | Record<string,unknown> | {():Child, [ELEMENT]:boolean}
 export type View = {():void, [ELEMENT]?:boolean}
 
 // export type PropsKeys = typeof Properties extends Set<infer K> ? K : never;
-// export type BooleanProps = typeof BooleanAttributes extends Set<infer K> ? K : never;
+// export type BooleanProps = typeof BooleanAttributes ext ends Set<infer K> ? K : never;
 // export type HandlerProps = typeof DelegatedEvents extends Set<infer K> ? K : never;
 // export type ChildProps = {children?:any[]}
 // export type ElementProps = BooleanProps & HandlerProps & ChildProps & {class: string}
@@ -29,10 +29,6 @@ export type TagParser = <T extends string>(s:T) => {name:string,id?:string,class
 */
 export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
 
-  function item(e: Element, c: string, m?: null): void
-  function item(e: Element, c: number, m?: null): void
-  function item(e: Element, c: Element, m?: null): void
-  function item(e: Element, c: Child, m?: null): void
   function item(e: Element, c: Child, m?: null): void {
     if (c===null) return
     const t = typeof c
@@ -56,10 +52,10 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
 
   function h(first: Component<Record<string,never>>): View
   function h<P extends Record<string, unknown>>(first: Component<P>, second: P): View
-  function h<C extends Child>(first: Component<{children:C}>, second: C): View
-  function h<P extends Record<string, unknown>, C extends Child>(first: Component<P & {children:C}>, second:P, third:C): View
+  function h<C>(first: Component<{children:C}>, second: C): View
+  function h<P extends Record<string, unknown>, C>(first: Component<P & {children:C}>, second:P, third:C): View
 
-  function h<P extends Record<string,unknown>, C extends Child>(
+  function h<P extends Record<string,unknown>, C = never>(
     first: Tag | Component<P>,
     second?: P | C,
     third?: C

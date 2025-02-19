@@ -65,7 +65,9 @@ const SYMBOL_ERRORS = Symbol()
 // // Value node
 // class VNode {}
 
-export class Signal<T = unknown> {
+export type Signal = Getter<T> & Setter<T>
+
+class Signal<T = unknown> {
   public parent: Computation<T> | undefined
   public value: T
   private readonly equals: EqualsFn<T>
