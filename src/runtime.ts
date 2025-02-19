@@ -7,12 +7,12 @@ const {isArray} = Array
 
 export type Mountable = HTMLElement | Document | ShadowRoot | DocumentFragment | Node | string | number | bigint | symbol;
 
-declare global {
-  interface Document {
-    '_$DX_DELEGATE'?: Record<string, Set<unknown>>
-  }
-  // interface SVGElement {}
-}
+// declare global {
+//   interface Document {
+//     '_$DX_DELEGATE'?: Record<string, Set<unknown>>
+//   }
+//   // interface SVGElement {}
+// }
 
 // interface Element {
 //   style?: string
