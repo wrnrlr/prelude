@@ -52,12 +52,12 @@ type ItemHolder<T> = {
 function listArray<T, U extends Mountable>(
   list: Getter<T[]>,
   mapFn: (v: Getter<T>, i: Getter<number>) => U,
-  options: { fallback?: Mountable } = {}
+  options: { fallback?: Mountable }
 ): () => U[]
 function listArray<T, U extends Mountable>(
   list: Signal<T[]>,
   mapFn: (v: Signal<T>, i: Getter<number>) => U,
-  options: { fallback?: Mountable } = {}
+  options: { fallback?: Mountable }
 ): () => U[]
 function listArray<T, U extends Mountable>(
   list: Getter<T[]> | Signal<T[]>,
