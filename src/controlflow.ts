@@ -195,7 +195,6 @@ function listArray<T, U extends Mountable>(
     item!.valueSetter?.(newValueGetter)
   }
   function mapper(disposer: ()=>void) {
-    const V = newValue
     const I = i
     const t = {value: newValue, index: I, disposer}
     items.push(t)
@@ -218,7 +217,7 @@ function listArray<T, U extends Mountable>(
   }
 }
 
-function disposeList(list:any[]) {
+function disposeList(list:{disposer?:()=>unknown}[]) {
   for (let i = 0; i < list.length; i++) {
     list[i]?.disposer()
   }

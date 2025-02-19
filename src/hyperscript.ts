@@ -22,12 +22,24 @@ export type View = {():void, [ELEMENT]?:boolean}
 
 export type TagParser = <T extends string>(s:T) => {name:string,id?:string,classes:string[],namespace?:string}
 
+export type HyperScript = {
+  (first: Tag): View
+  <P>(first: Tag, second: P): View
+  <C extends Child>(first: Tag, second: C): View
+  <C extends Child, P>(first: Tag, second: P, third: C): View
+
+  (first: Component<Record<string,never>>): View
+  <P extends Record<string, unknown>>(first: Component<P>, second: P): View
+  <C>(first: Component<{children:C}>, second: C): View
+  <P extends Record<string, unknown>, C>(first: Component<P & {children:C}>, second:P, third:C): View
+}
+
 /**
 @param r
 @param patch
 @group Hyperscript
 */
-export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
+export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag): HyperScript {
 
   function item(e: Element, c: Child, m?: null): void {
     if (c===null) return
@@ -45,17 +57,7 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
     } else e.appendChild(r.text(c.toString()))
   }
 
-  function h(first: Tag): View
-  function h<P>(first: Tag, second: P): View
-  function h<C extends Child>(first: Tag, second: C): View
-  function h<C extends Child, P>(first: Tag, second: P, third: C): View
-
-  function h(first: Component<Record<string,never>>): View
-  function h<P extends Record<string, unknown>>(first: Component<P>, second: P): View
-  function h<C>(first: Component<{children:C}>, second: C): View
-  function h<P extends Record<string, unknown>, C>(first: Component<P & {children:C}>, second:P, third:C): View
-
-  function h<P extends Record<string,unknown>, C = never>(
+  return function h<P extends Record<string,unknown>, C = never>(
     first: Tag | Component<P>,
     second?: P | C,
     third?: C
@@ -73,9 +75,8 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
 
     let ret:View
 
-    const t1 = typeof first
-    if (t1 === 'string') {
-      const tag = parseTag(first as Tag)
+    if (typeof first === 'string') {
+      const tag = parseTag(first)
       const multiExpression = detectMultiExpression(children) ? null : undefined
       const e = r.element(tag.name)
       const props2 = props as P & {class?: string|(()=>string)}
@@ -95,16 +96,16 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
           dynamic = true
         } else if (d[k].get) dynamic = true
       }
-      (dynamic ? r.spread : r.assign) (e, props2, !!(children as any)?.length)
+      (dynamic ? r.spread : r.assign) (e, props2, !!(children as {length?: number})?.length)
       item(e, children, multiExpression)
       ret = () => e
     } else {
       const d = Object.getOwnPropertyDescriptors(props)
-      if (children) (props as any).children = children
+      if (children) (props as unknown as {children:unknown}).children = children
       for (const k in d) {
         if (isArray(d[k].value)) {
           const list = d[k].value;
-          (props as any)[k] = () => {
+          (props as Record<string, ()=>unknown>)[k] = () => {
             for (let i = 0; i < list.length; i++)
               while (list[i][ELEMENT]) list[i] = list[i]()
             return list
@@ -120,8 +121,6 @@ export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag) {
     ret[ELEMENT] = true
     return ret
   }
-
-  return h
 }
 
 function detectMultiExpression(children: Child): boolean {

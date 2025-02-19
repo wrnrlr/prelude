@@ -26,7 +26,7 @@ export type Mountable = HTMLElement | Document | ShadowRoot | DocumentFragment |
 */
 export type Runtime = {
   // window:Window
-  render(code:()=>void, element:Element, init:any): any;
+  render(code:()=>void, element:Element, init:unknown): void;
   insert(parent:Mountable, accessor:any, marker?:Node|null, init?:any): any;
   spread(node:Element, accessor:any, skipChildren?: boolean): void;
   assign(node:Element, props:any, skipChildren?:boolean): void;
@@ -60,9 +60,7 @@ export function runtime(w:Window):Runtime {
     return untrack(fn)
   }
 
-  function render(code: ()=>void, element:Element, init?:any): void
-  function render(code: ()=>void, element:Document, init?:any): void
-  function render(code: ()=>void, element:Element|Document, init?:any): void {
+  function render(code: ()=>void, element:Element|Document, init?: unknown): void {
     if (!element) throw new Error("The `element` passed to `render(..., element)` doesn't exist.");
     root(() => {
       if (element instanceof Document) code()
