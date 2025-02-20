@@ -1,4 +1,4 @@
-export type {Getter,Setter,Fn,EqualsFn,ErrorFn,RootFn,UpdateFn} from './reactive.ts'
+export type {Getter,Setter,Fn,EqualsFn,ErrorFn,RootFn,UpdateFn,Signal} from './reactive.ts'
 export {signal,effect,untrack,batch,memo,root,wrap,fuse,onMount,onCleanup} from './reactive.ts'
 export {nbsp} from './constants.ts'
 export {Show,List} from './controlflow.ts'
