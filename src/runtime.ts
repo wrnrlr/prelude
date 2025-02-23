@@ -339,7 +339,7 @@ function setAttribute(node: Element, name: string, value?: string): undefined {
 }
 
 function setAttributeNS(node:Node, ns:string, name:string, value?:string):void {
-  value ? node.setAttributeNS(ns, name, value) : node.removeAttributeNS(ns, name)
+  value===undefined || value===null ? node.setAttributeNS(ns, name, value) : node.removeAttributeNS(ns, name)
 }
 
 function addEventListener(node: Element, name: string, handler:((e:Event)=>void), delegate:boolean): void {
