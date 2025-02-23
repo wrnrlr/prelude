@@ -49,24 +49,24 @@ type ItemHolder<T> = {
   disposer: ()=>void
 }
 
-function listArray<T, U extends Mountable>(
+export function listArray<T, U extends Mountable>(
   list: Getter<T[]>,
   mapFn: (v: Getter<T>, i: Getter<number>) => U,
   options: { fallback?: Mountable }
 ): () => U[]
-function listArray<T, U extends Mountable>(
+export function listArray<T, U extends Mountable>(
   list: Signal<T[]>,
   mapFn: (v: Signal<T>, i: Getter<number>) => U,
   options: { fallback?: Mountable }
 ): () => U[]
-function listArray<T, U extends Mountable>(
+export function listArray<T, U extends Mountable>(
   list: Getter<T[]> | Signal<T[]>,
   mapFn: (v: Signal<T>, i: Getter<number>) => U,
   options: { fallback?: Mountable } = {}
 ): () => U[] {
   const items: ListItem<T>[] = [];
   let mapped: U[] = [],
-    unusedItems: number,
+    // unusedItems: number,
     i: number,
     j: number,
     item: ListItem<T>,
@@ -92,7 +92,7 @@ function listArray<T, U extends Mountable>(
       }
 
       const temp: U[] = new Array(newItems.length); // new mapped array
-      unusedItems = items.length;
+      let unusedItems = items.length;
 
       // 1) no change when values & indexes match
       for (j = unusedItems - 1; j >= 0; --j) {
@@ -186,8 +186,7 @@ function listArray<T, U extends Mountable>(
       return (mapped = temp);
     })
   }
-  // const indexes = cb.length > 1 ? [] : null;
-  function newValueGetter(_:unknown) { return newValue }
+  function newValueGetter(a:unknown) { console.log({a}); return newValue }
   function changeBoth() {
     item!.index = i!
     item!.indexSetter?.(i)
@@ -195,25 +194,26 @@ function listArray<T, U extends Mountable>(
     item!.valueSetter?.(newValueGetter)
   }
   function mapper(disposer: ()=>void) {
-    const I = i
-    const t = {value: newValue, index: I, disposer}
+    const t = {value: newValue, index: i, disposer}
     items.push(t)
-    const sI = () => { t.indexSetter = I; return signal(I) }
+    let sI = (...a) => {
+      sI = signal(t.index);
+      t.indexSetter = sI;
+      return sI(...a)
+    }
     let sV = (...a) => {
-      const k = I
       sV = (...a) => {
         if (a.length===0) {
-          const bk = list()[k]
-          return bk
+          return list()[sI()]
         } else {
-          const b = untrack(list)
-          return list(b.toSpliced(k, 1, a[0])).at(k)
+          const k = untrack(sI)
+          return list(b => b.toSpliced(k, 1, typeof a[0] === 'function' ? a[0]() : a[0])).at(k)
         }
       }
       t.valueSetter = sV
       return sV(...a)
     }
-    return mapFn(sV, () => sI())
+    return mapFn(sV, sI)
   }
 }
 

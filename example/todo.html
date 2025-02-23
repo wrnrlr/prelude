@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<title>Todo</title>
+
+<script type="module">
+
+import {h,signal,effect,batch,wrap,render,List} from '../src/mod.ts'
+
+const data = [
+  // {description:'Buy groceries',done:false},
+  {description:'Clean car',done:false},
+  {description:'File taxes',done:true},
+]
+
+function Input(props) {
+  return h('input',{
+    value:props.value,
+    onInput:e => props.value(e.target.value),
+    tabindex:props.tabindex
+  })
+}
+
+function Checkbox(props) {
+  return h('input',{
+    type:'checkbox',
+    checked:props.value,
+    onInput:e => props.value(e.target.checked)
+  })
+}
+
+function TodoItem(props) {
+  // const description = wrap(props.value,'description')
+  const done = wrap(props.value,'done')
+  return h('li', [
+    h(Checkbox,{value:()=>done}),
+    // h(Input,{value:()=>description}),
+    h('button',{onClick:props.onDelete},'\u2715')
+  ])
+}
+
+function App() {
+  const name = signal('')
+  const todos = signal(data)
+  function onSubmit(e) {
+    e.preventDefault()
+    todos(v => v.toSpliced(v.length, 0, {description:name(), done:false}))
+    name('')
+  }
+  const removeItem = i => e => {
+    batch(()=>{
+      const old = todos()
+      console.log('old',old, i)
+      todos(old.toSpliced(i,1))
+    })
+  }
+  return [
+    h('h3','Todo'),
+    h('ul',[h(List, {each:()=>todos}, (value,i) =>
+      h(TodoItem, {
+        value:()=>value,
+        onDelete: removeItem(i())
+      })
+    )]),
+    h('form',{onSubmit},[h(Input,{value:()=>name,tabindex:1})]),
+    h('pre.hello',()=>'todos: '+JSON.stringify(todos(),undefined,2))
+  ]
+}
+
+render(App, document.body)
+
+</script>
+
+<style>
+ul {margin:0;padding:0}
+ul,li {list-style-type: none}
+input {border-width: 0 0 1px 0; margin:0.25em}
+li>button {border:none; background:none}
+</style>

@@ -338,7 +338,7 @@ function setAttribute(node: Element, name: string, value?: string): undefined {
   value===undefined || value===null ? node.removeAttribute(name) : node.setAttribute(name, value)
 }
 
-function setAttributeNS(node:Node, ns:string, name:string, value?:string):any {
+function setAttributeNS(node:Node, ns:string, name:string, value?:string):void {
   value ? node.setAttributeNS(ns, name, value) : node.removeAttributeNS(ns, name)
 }
 
