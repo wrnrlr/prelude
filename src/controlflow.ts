@@ -82,8 +82,10 @@ export function listArray<T, U extends Mountable>(
     disposeList(items)
   })
 
+  let newItems
+
   return () => {
-    const newItems = typeof list==='function' ? list() || [] : list;
+    newItems = typeof list==='function' ? list() || [] : list;
     return untrack(() => {
       if (newItems.length > 0 && fallbackDisposer) {
         fallbackDisposer();
@@ -204,10 +206,11 @@ export function listArray<T, U extends Mountable>(
     let sV = (...a) => {
       sV = (...a) => {
         if (a.length===0) {
-          return list()[sI()]
+          return newItems[t.index]
         } else {
-          const k = untrack(sI)
-          return list(b => b.toSpliced(k, 1, typeof a[0] === 'function' ? a[0]() : a[0])).at(k)
+          const k = t.index
+          const b = newItems.toSpliced(k, 1, typeof a[0] === 'function' ? a[0]() : a[0])
+          return list(b).at(k)
         }
       }
       t.valueSetter = sV
