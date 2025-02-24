@@ -34,9 +34,6 @@ jobs:
       - name: Run tests
         run: deno task test
 
-      - name: Build
-        run: deno task build
-
       # Moving artifacts, website and docs into their own project...
       # - name: Setup Pages
         # uses: actions/configure-pages@v5
