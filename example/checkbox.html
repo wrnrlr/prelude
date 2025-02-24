@@ -15,9 +15,9 @@ function Checkbox(props) {
 }
 
 function App() {
-  const todos = signal([true,false])
-  // const obj = signal({todos:[true]})
-  // const todos = wrap(obj,'todos')
+  // const todos = signal([true,false])
+  const obj = signal({todos:[true]})
+  const todos = wrap(obj,'todos')
   const first = wrap(todos, 0)
   const removeItem = i => {
     // console.log('remove', i)
