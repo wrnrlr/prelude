@@ -1,23 +1,37 @@
-name: Publish
+name: Prelude CI/CD
 
 on:
   push:
     branches:
       - main
+      - release
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# permissions:
+  # contents: read
+  # id-token: write
 
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # if: github.ref == 'refs/heads/main'
     steps:
-      - name: Check out the repository to the runner
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Deno install
+        run: deno install
+      # - name: Lint
+      #   run: deno lint
+      - name: Run tests
+        run: deno task test
+  publish:
+    needs: test
+    if: github.ref == 'refs/heads/release'
+    steps:
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Deno
@@ -25,14 +39,21 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Deno install
-        run: deno install
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          registry-url: 'https://registry.npmjs.org/'
 
-      # - name: Lint
-      #   run: deno lint
+      - name: Publish to JSR
+        run: deno publish
+        env:
+          JSR_AUTH_TOKEN: ${{ secrets.JSR_AUTH_TOKEN }}
 
-      - name: Run tests
-        run: deno task test
+      - name: Publish to NPM
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
       # Moving artifacts, website and docs into their own project...
       # - name: Setup Pages
@@ -46,10 +67,3 @@ jobs:
       # - name: Deploy to GitHub Pages
         # id: deployment
         # uses: actions/deploy-pages@v4
-
-      # - name: Setup NPM
-      #   run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /home/runner/.npmrc
-      #   env:
-      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      # - name: Run release script
-      #   run: /home/runner/.deno/bin/deno task release

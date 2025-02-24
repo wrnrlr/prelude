@@ -128,7 +128,6 @@ describe('wrap', ()=>{
     const obj = signal({todos:[{done:false,name:'a'}, {done:false,name:'b'}]}), todos = wrap(obj, 'todos'), todo = wrap(todos, 0),
       name = wrap(todo, 'name'), done = wrap(todo,'done')
     assertEquals(done(true),true)
-    console.log('OBJ',obj())
     effect(()=>{
       name();done()
     })
