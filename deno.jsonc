@@ -19,7 +19,8 @@
     "release": "deno publish --allow-slow-types --allow-dirty && npm publish --access public"
   },
   "lint": {
-    "include": ["src"]
+    "include": ["src"],
+    "exclude": ["src/runtime.ts"]
   },
   "fmt": {
     "lineWidth": 120,

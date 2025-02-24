@@ -188,7 +188,7 @@ export function listArray<T, U extends Mountable>(
       return (mapped = temp);
     })
   }
-  function newValueGetter(a:unknown) { return newValue }
+  function newValueGetter() { return newValue }
   function changeBoth() {
     item!.index = i!
     item!.indexSetter?.(i)
