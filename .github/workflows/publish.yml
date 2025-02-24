@@ -46,7 +46,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
 
       - name: Publish to JSR
-        run: deno publish
+        run: deno task release
 
       - name: Publish to NPM
         run: npm publish --access public
