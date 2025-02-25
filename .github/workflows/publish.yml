@@ -51,7 +51,7 @@ jobs:
       - name: Publish to NPM
         run: npm publish --access public --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # Moving artifacts, website and docs into their own project...
       # - name: Setup Pages
