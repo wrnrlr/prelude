@@ -46,10 +46,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
 
       - name: Publish to JSR
-        run: deno task release
+        run: deno publish --allow-slow-types --allow-dirty
 
       - name: Publish to NPM
-        run: npm publish --access public
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 

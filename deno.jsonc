@@ -1,6 +1,6 @@
 {
   "name": "@wrnrlr/prelude",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "exports": "./src/mod.ts",
   "compilerOptions": {
     "strict": true,
@@ -11,12 +11,12 @@
     "@std/fs": "jsr:@std/fs@^1.0.5",
     "@std/path": "jsr:@std/path@^1.0.6",
     "@std/testing": "jsr:@std/testing@^0.225.3",
-    "happy-dom": "npm:happy-dom@^17.1.0",
+    "happy-dom": "npm:happy-dom@^17.1.0"
   },
   "tasks": {
     "dev": "deno run -A npm:vite --config www/vite.config.js",
     "test": "deno test -A ./test/*.[jt]s",
-    "release": "deno publish --allow-slow-types --allow-dirty && npm publish --access public"
+    "release": "git push origin main:release"
   },
   "lint": {
     "include": ["src"],
