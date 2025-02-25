@@ -1,0 +1,32 @@
+name: Prelude CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - release
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno install
+      # - run: deno lint
+      - run: deno task test
+
+      # Moving artifacts, website and docs into their own project...
+      # - name: Setup Pages
+        # uses: actions/configure-pages@v5
+
+      # - name: Upload artifact
+        # uses: actions/upload-pages-artifact@v3
+        # with:
+          # path: './www/dist'
+
+      # - name: Deploy to GitHub Pages
+        # id: deployment
+        # uses: actions/deploy-pages@v4

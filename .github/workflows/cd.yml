@@ -3,7 +3,6 @@ name: Prelude CI/CD
 on:
   push:
     branches:
-      - main
       - release
 
 permissions:
@@ -24,7 +23,6 @@ jobs:
       - run: deno task test
   publish-jsr:
     needs: test
-    if: github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +32,6 @@ jobs:
       - run: deno publish --allow-slow-types --allow-dirty
   publish-npm:
     needs: test
-    if: github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,16 +42,3 @@ jobs:
       - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # Moving artifacts, website and docs into their own project...
-      # - name: Setup Pages
-        # uses: actions/configure-pages@v5
-
-      # - name: Upload artifact
-        # uses: actions/upload-pages-artifact@v3
-        # with:
-          # path: './www/dist'
-
-      # - name: Deploy to GitHub Pages
-        # id: deployment
-        # uses: actions/deploy-pages@v4
