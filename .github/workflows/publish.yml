@@ -39,14 +39,14 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Publish to JSR
+        run: deno publish --allow-slow-types --allow-dirty
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 23
           registry-url: 'https://registry.npmjs.org/'
-
-      - name: Publish to JSR
-        run: deno publish --allow-slow-types --allow-dirty
 
       - name: Publish to NPM
         run: npm publish --access public --provenance
