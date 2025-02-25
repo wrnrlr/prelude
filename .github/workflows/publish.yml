@@ -6,57 +6,42 @@ on:
       - main
       - release
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/main'
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - name: Deno install
-        run: deno install
+      - run: deno install
       # - name: Lint
       #   run: deno lint
-      - name: Run tests
-        run: deno task test
+      - run: deno task test
   publish-jsr:
     needs: test
     if: github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-
-      - name: Publish to JSR
-        run: deno publish --allow-slow-types --allow-dirty
+      - run: deno publish --allow-slow-types --allow-dirty
   publish-npm:
     needs: test
     if: github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
-
-      - name: Publish to NPM
-        run: npm publish --access public
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
