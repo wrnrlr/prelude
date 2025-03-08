@@ -53,9 +53,9 @@ export function resource(pSource,pFetcher,pOptions) {
     }, false)
   }
 
-  function read() {
-    const v = value(),
-      err = error();
+  function read(...a) {
+    const v = a.length===0 ? value() : value(a[0])
+    const err = error();
     if (err !== undefined && !pr) throw err;
     return v;
   }
