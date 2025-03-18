@@ -1,13 +1,16 @@
 import type {DOMElements} from './constants.ts'
-import type {Runtime} from './runtime.ts'
+import type {Runtime,Mountable} from './runtime.ts'
+import {r} from './runtime.ts'
 
 const ELEMENT: unique symbol = Symbol(), {isArray} = Array
 
-export type Mountable = View | HTMLElement | string | number | bigint | symbol | boolean | Date | Mountable[];
+// export type Mountable = View | HTMLElement | string | number | bigint | symbol | boolean | Date | Mountable[];
 export type Component<T> = ((props:T) => Mountable) | ((props:T) => Mountable[])
 export type Tag = typeof DOMElements extends Set<infer K> ? K : never;
 export type Child = { ():Child } | Element | Child[] | string | number | symbol | bigint | boolean | Date | Record<string,unknown> | {():Child, [ELEMENT]:boolean}
 export type View = {():void, [ELEMENT]?:boolean}
+
+export const h = hyperscript(r)
 
 // export type PropsKeys = typeof Properties extends Set<infer K> ? K : never;
 // export type BooleanProps = typeof BooleanAttributes ext ends Set<infer K> ? K : never;

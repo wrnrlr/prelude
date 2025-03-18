@@ -1,7 +1,10 @@
 {
   "name": "@wrnrlr/prelude",
   "version": "0.2.13",
-  "exports": "./src/mod.ts",
+  "exports": {
+      ".": "./src/mod.ts",
+      "./style.css": "./src/style.css"
+  },
   "compilerOptions": {
     "strict": true,
     "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]

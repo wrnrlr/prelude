@@ -1,8 +1,8 @@
-import {assertEquals,assert} from '@std/assert'
-import {describe,it} from '@std/testing/bdd'
+// import {assertEquals,assert} from '@std/assert'
+// import {describe,it} from '@std/testing/bdd'
 
-import { signal } from '../src/reactive.ts'
-import { listArray } from '../src/controlflow.ts'
+// import { signal } from '../src/reactive.ts'
+// import { listArray } from '../src/list.ts'
 
 // Deno.test('listArray applies list to mapFn', ()=>{
 //   const l = signal([0,1,2])

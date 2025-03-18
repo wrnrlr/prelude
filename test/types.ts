@@ -1,11 +1,15 @@
-import { runtime } from '../src/runtime.ts'
-import { hyperscript, type Mountable } from '../src/hyperscript.ts'
+import { type Mountable } from '../src/runtime.ts'
+import { h } from '../src/hyperscript.ts'
 import { signal, root } from '../src/reactive.ts'
-import { List } from '../src/controlflow.ts'
+import { List } from '../src/list.ts'
 import { Window } from 'happy-dom'
 
 const window = new Window
-const r = runtime(window as any), h = hyperscript(r)
+
+globalThis.window = (window as any)
+globalThis.document = (window as any).document
+globalThis.navigator = (window as any).navigator
+
 
 h('hr')
 h('div', ['hello'])

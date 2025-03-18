@@ -1,15 +1,15 @@
-export type {Getter,Setter,Fn,EqualsFn,ErrorFn,RootFn,UpdateFn,Signal} from './reactive.ts'
+export type {Getter,Setter,Signal} from './reactive.ts'
 export {signal,effect,untrack,batch,memo,root,wrap,fuse,onMount,onCleanup} from './reactive.ts'
 export {nbsp} from './constants.ts'
-export {Show,List} from './controlflow.ts'
-export {runtime, type Runtime} from './runtime.ts'
-import {runtime, type Runtime} from './runtime.ts'
-export {hyperscript,type Child,type Tag,type View,type Component} from './hyperscript.ts'
-import {hyperscript, parseHtmlTag, type HyperScript} from './hyperscript.ts'
-export {Router} from './router.js'
+export {List} from './list.ts'
+export {Show} from './show.ts'
+export {r, type Runtime} from './runtime.ts'
+export type * from './hyperscript.ts'
+export {hyperscript, h} from './hyperscript.ts'
+export {HashRouter} from './router.js'
 export {resource,makeAbortable,abortable} from './resource.js'
 
-const r:Runtime = /*#__PURE__*/ (typeof window === 'object') ? runtime(window) : undefined as unknown as Runtime
+// const r:Runtime = /*#__PURE__*/ (typeof window === 'object') ? runtime(window) : undefined as unknown as Runtime
 
 /** h
 @example Element with a single child
@@ -26,7 +26,7 @@ h(Input,{onInput:e => {}})
 ```
 @group Hyperscript
 */
-export const h: HyperScript = /*#__PURE__*/ hyperscript(r, parseHtmlTag)
+// export const h: HyperScript = /*#__PURE__*/ hyperscript(r, parseHtmlTag)
 
 /** render
 
@@ -36,4 +36,4 @@ Render component to DOM element.
 render(()=>'hi', document.body)
 ```
 */
-export const render:(code:()=>void, element:Element, init:unknown) => void = /*#__PURE__*/ r?.render
+// export const render:(code:()=>void, element:Element, init:unknown) => void = /*#__PURE__*/ r?.render

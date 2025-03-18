@@ -1,13 +1,16 @@
-import {runtime} from '../src/runtime.ts'
-import {hyperscript} from '../src/hyperscript.ts'
-import {signal,root} from '../src/reactive.ts'
+// import {runtime} from '../src/runtime.ts'
 import { Window } from 'happy-dom'
 import {assertEquals} from '@std/assert'
 
 const window = new Window
-const document = window.document
-globalThis = window
-const r = runtime(window), h = hyperscript(r)
+
+globalThis.window = window
+globalThis.document = window.document
+globalThis.navigator = window.navigator
+
+import {signal,root} from '../src/reactive.ts'
+import { r } from '../src/runtime.ts'
+import {h} from '../src/hyperscript.ts'
 
 function testing(name, props, f=props) {
   const htest = t => (name, f) => {
