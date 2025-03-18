@@ -1,4 +1,4 @@
-name: Prelude CI/CD
+name: CD
 
 on:
   push:
