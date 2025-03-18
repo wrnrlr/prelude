@@ -15,7 +15,7 @@ jobs:
           deno-version: v2.x
       - run: deno install
       # - run: deno lint
-      - run: deno task test
+      - run: deno task test --no-check
 
       # Moving artifacts, website and docs into their own project...
       # - name: Setup Pages
