@@ -301,14 +301,32 @@ export function context<T>(): Context<T | undefined>;
 export function context<T>(defaultValue: T): Context<T>;
 export function context<T>(defaultValue?: T) {
   const id = Symbol()
-  const get = (): T | undefined => OBSERVER?.get ( id ) ?? defaultValue
-  const set = ( value: T ): void => OBSERVER?.set ( id, value )
+  const get = (): T | undefined => OBSERVER?.get(id) ?? defaultValue
+  const set = ( value: T ): void => OBSERVER?.set(id, value)
+  // const Provider = createProvider(id)
   const s = {id, defaultValue, get, set}
   const f = Object.assign((props:any) => {
     set(props.value)
     return () => props.children.call ? props.children() : props.children
   }, s)
   return f as unknown as Context<T>
+  // return {id, Provider, defaultValue} as unknown as Context<T>
+}
+
+function createProvider(id: symbol): any {
+  return function provider(props) {
+    let res;
+    renderEffect(() => (res = untrack(() => {
+      console.log('observer', OBSERVER, props)
+      OBSERVER!.context = { ...OBSERVER!.context, [id]: props.value };
+      return children(() => props.children);
+    })))
+    return res;
+  };
+}
+
+export function renderEffect(fn:()=>void) {
+  return globalThis.requestAnimationFrame(()=>effect(fn))
 }
 
 export function useContext<T>(context: Context<T>): T {

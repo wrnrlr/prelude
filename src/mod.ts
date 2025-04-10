@@ -1,5 +1,5 @@
 export type {Getter,Setter,Signal} from './reactive.ts'
-export {signal,effect,untrack,batch,memo,root,context,useContext,wrap,fuse,onMount,onCleanup} from './reactive.ts'
+export {signal,effect,untrack,batch,memo,root,context,useContext,wrap,fuse,onMount,onCleanup,renderEffect} from './reactive.ts'
 export {nbsp} from './constants.ts'
 export {List} from './list.ts'
 export {Show} from './show.ts'
@@ -8,6 +8,9 @@ export type * from './hyperscript.ts'
 export {hyperscript, h} from './hyperscript.ts'
 export {HashRouter} from './router.js'
 export {resource,makeAbortable,abortable} from './resource.js'
+import {r} from './runtime.ts'
+export const render = r.render
+export {Dialog,useDialog,Input,Checkbox,Select} from './form.js'
 
 // const r:Runtime = /*#__PURE__*/ (typeof window === 'object') ? runtime(window) : undefined as unknown as Runtime
 

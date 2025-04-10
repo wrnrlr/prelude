@@ -1,0 +1,29 @@
+@import('./reset.css')
+
+.select {}
+
+.option {
+  cursor: pointer;
+  background-color: var(--bg, white);
+}
+
+.multiselect {}
+
+:root {
+  font-family: sans-serif;
+}
+.example {
+  display: flex;
+  padding: 2rem;
+}
+
+details {
+  & > script {
+    display: block;
+  }
+}
+script {
+  display: block;
+}
+
+.select {}

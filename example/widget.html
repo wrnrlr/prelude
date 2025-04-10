@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<head>
+  <title>Widget</title>
+  <script type="importmap">{"imports": {"prelude": "../src/mod.ts"}}</script>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<style>
+script,script[type="module"] {
+  display: block;
+}
+</style>
+
+<a href="/index.html">Home</a>
+
+<h1>Widgets</h1>
+<ul>
+  <li><a href="#dialog">Dialog</a></li>
+  <li><a href="#input">Input</a></li>
+  <li><a href="#checkbox">Checkbox</a></li>
+  <li><a href="#select">Select</a></li>
+</ul>
+
+<h2 id="dialog">Dialog</h2>
+<div class="example" id="dialog_example"></div>
+<details>
+  <summary>Code</summary>
+  <script type="module">
+  import { h, signal, render, Dialog, useDialog } from '../src/mod.ts'
+
+  function HelloDialog(props) {
+    let dialog
+    return h('', {ref(e){dialog=e}}, [
+      'Hello',
+      h('button', {onClick:_=>dialog.close()}, 'Close')
+    ])
+  }
+
+  function MenuDialog(props) {
+    let dialog
+    return h('', {ref(e){dialog=e}}, [
+      'Hello',
+      h('button', {onClick:_=>dialog.close()}, 'Close')
+    ])
+  }
+
+  function DialogExample() {
+    const showModal = signal(false)
+    const showDialog = signal(false)
+    return h('', {style:'display: flex; gap: 0.25rem'}, [
+      h('button', {onClick:e=>showModal(true)}, 'Modal'),
+      h(Dialog, {show:()=>showModal, modal: true}, h(HelloDialog)),
+      h('button', {onClick:e=>showDialog(true)}, 'Dialog'),
+      h(Dialog, {show:()=>showDialog}, h(MenuDialog)),
+    ])
+  }
+
+  render(DialogExample, document.getElementById('dialog_example'))
+  </script>
+</details>
+
+<h2 id="input">Input</h2>
+<div class="example" id="input_example"></div>
+
+<h2>Input autosize</h2>
+<div class="example" id="input_autosize"></div>
+<script type="module">
+import { h, signal, render, Input } from '../src/mod.ts'
+
+function InputExample() {
+  const name = signal('Bob')
+  return h(Input, {value:()=>name})
+}
+
+render(InputExample, document.getElementById('input_autosize'))
+</script>
+
+<h2 id="checkbox">Checkbox</h2>
+<div class="example" id="checkbox_example"></div>
+<script type="module">
+import { h, signal, render, Checkbox } from "../src/mod.ts"
+
+function CheckboxExample() {
+  const valid = signal(false)
+  return h(Checkbox, {value:()=>valid})
+}
+
+render(CheckboxExample, document.getElementById('checkbox_example'))
+</script>
+
+<h2 id="select">Select</h2>
+<div class="example " id="select_car"></div>
+<script type="module">
+import { h, signal, memo, render, Select } from "../src/mod.ts"
+
+function SelectCar() {
+  const cars = { 'Audi': ['A1','A6'], 'BMW': ['B5', 'BX'] }
+  const companies = Object.keys(cars)
+  const company = signal()
+  const model = signal('')
+  const models = memo(() => cars[company()] || null)
+  return [
+    '', h(Select, {options:companies, value:()=>company}),
+    '', h(Select, {options:models, value:()=>model})
+  ]
+}
+
+render(SelectCar, document.getElementById('select_car'))
+</script>
+
+<style>
+
+</style>
