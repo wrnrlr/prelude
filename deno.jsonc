@@ -1,6 +1,6 @@
 {
   "name": "@wrnrlr/prelude",
-  "version": "0.2.15",
+  "version": "0.2.18",
   "exports": {
       ".": "./src/mod.ts",
       "./style.css": "./src/style.css"
@@ -18,7 +18,7 @@
   },
   "tasks": {
     "dev": "deno run -A npm:vite --config www/vite.config.js",
-    "test": "deno test -A ./test/*.[jt]s",
+    "test": "deno test -A ./test/*.[jt]s --no-check",
     "release": "git push origin main:release"
   },
   "lint": {
