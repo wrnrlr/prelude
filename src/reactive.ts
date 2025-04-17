@@ -59,13 +59,6 @@ export type Setter<T> = {
   (value: T): T
 }
 
-export type Context<T> = {
-  id: symbol,
-  defaultValue: T,
-  get(): T,
-  set(value: T): void
-}
-
 export type Options<T> = {
   equals?: false | EqualsFn<T>
 }
@@ -297,40 +290,30 @@ export function root<T>(fn: RootFn<T>): T {
   return new Root().wrap(fn)
 }
 
-export function context<T>(): Context<T | undefined>;
-export function context<T>(defaultValue: T): Context<T>;
-export function context<T>(defaultValue?: T) {
-  const id = Symbol()
-  const get = (): T | undefined => OBSERVER?.get(id) ?? defaultValue
-  const set = ( value: T ): void => OBSERVER?.set(id, value)
-  // const Provider = createProvider(id)
-  const s = {id, defaultValue, get, set}
-  const f = Object.assign((props:any) => {
-    set(props.value)
-    return () => props.children.call ? props.children() : props.children
-  }, s)
-  return f as unknown as Context<T>
-  // return {id, Provider, defaultValue} as unknown as Context<T>
+export type Context<T> = {
+  id: symbol,
+  defaultValue: T,
+  get(): T,
+  set(value: T): void
 }
 
-function createProvider(id: symbol): any {
-  return function provider(props) {
-    let res;
-    renderEffect(() => (res = untrack(() => {
-      console.log('observer', OBSERVER, props)
-      OBSERVER!.context = { ...OBSERVER!.context, [id]: props.value };
-      return children(() => props.children);
-    })))
-    return res;
-  };
+export function context<T>(): Context<T | undefined>
+export function context<T>(defaultValue: T): Context<T>
+export function context<T>(defaultValue?: T) {
+  const id = Symbol()
+  const s = {id, defaultValue}
+  return Object.assign((props:any) => {
+    OBSERVER?.set(id, props.value)
+    return () => props.children.call ? props.children() : props.children
+  }, s) as unknown as Context<T>
+}
+
+export function useContext<T>(ctx: Context<T>): T {
+  return OBSERVER?.get(ctx.id) ?? ctx.defaultValue
 }
 
 export function renderEffect(fn:()=>void) {
   return globalThis.requestAnimationFrame(()=>effect(fn))
-}
-
-export function useContext<T>(context: Context<T>): T {
-  return context.get()
 }
 
 export type S<T> = Getter<T> | Setter<T>

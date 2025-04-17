@@ -1,167 +1,211 @@
 import type {DOMElements} from './constants.ts'
-import type {Runtime,Mountable} from './runtime.ts'
+import type {Mountable} from './runtime.ts'
 import {r} from './runtime.ts'
 
-const ELEMENT: unique symbol = Symbol(), {isArray} = Array
-
-// export type Mountable = View | HTMLElement | string | number | bigint | symbol | boolean | Date | Mountable[];
-export type Component<T> = ((props:T) => Mountable) | ((props:T) => Mountable[])
-export type Tag = typeof DOMElements extends Set<infer K> ? K : never;
-export type Child = { ():Child } | Element | Child[] | string | number | symbol | bigint | boolean | Date | Record<string,unknown> | {():Child, [ELEMENT]:boolean}
-export type View = {():void, [ELEMENT]?:boolean}
+// const document = globalThis.document
 
 export const h = hyperscript(r)
 
-// export type PropsKeys = typeof Properties extends Set<infer K> ? K : never;
-// export type BooleanProps = typeof BooleanAttributes ext ends Set<infer K> ? K : never;
-// export type HandlerProps = typeof DelegatedEvents extends Set<infer K> ? K : never;
-// export type ChildProps = {children?:any[]}
-// export type ElementProps = BooleanProps & HandlerProps & ChildProps & {class: string}
-// export type ComponentProps = { children?:Child }
-// export type Props = Record<string, any>
-// type AllProps = ElementProps | ComponentProps
-// type EmptyProps = Record<string,never>
-// const Fragment:Component<Props> = <T extends Props>(props:T):Mountable => (props as any).children
+type MountableElement = Element | Document | ShadowRoot | DocumentFragment | Node
 
-export type TagParser = <T extends string>(s:T) => {name:string,id?:string,classes:string[],namespace?:string}
+interface Runtime {
+  insert(parent: MountableElement, accessor: any, marker?: Node | null, init?: any): any;
+  spread(node: Element, accessor: any, isSVG?: Boolean, skipChildren?: Boolean): void;
+  assign(node: Element, props: any, isSVG?: Boolean, skipChildren?: Boolean): void;
+  component(Comp: (props: any) => any, props: any): any;
+  SVGElements: Set<string>;
+}
+
+const $ELEMENT = Symbol("hyper-element");
+
+type ExpandableNode = Node & { [key: string]: any };
+type Props = { [key: string]: any };
 
 export type HyperScript = {
-  (first: Tag): View
-  <P>(first: Tag, second: P): View
-  <C extends Child>(first: Tag, second: C): View
-  <C extends Child, P>(first: Tag, second: P, third: C): View
+  (...args: any[]): () => ExpandableNode | ExpandableNode[];
+  Fragment: (props: {
+    children: (() => ExpandableNode) | (() => ExpandableNode)[];
+  }) => ExpandableNode[];
+};
 
-  (first: Component<Record<string,never>>): View
-  <P extends Record<string, unknown>>(first: Component<P>, second: P): View
-  <C>(first: Component<{children:C}>, second: C): View
-  <P extends Record<string, unknown>, C>(first: Component<P & {children:C}>, second:P, third:C): View
-}
+// Inspired by https://github.com/hyperhype/hyperscript
+export function hyperscript(r: Runtime): HyperScript {
+  function h() {
+    let args: any = [].slice.call(arguments),
+      e: ExpandableNode | undefined,
+      classes:string[] = [],
+      multiExpression = false;
 
-/**
-@param r
-@param patch
-@group Hyperscript
-*/
-export function hyperscript(r: Runtime, parseTag: TagParser = parseHtmlTag): HyperScript {
+    while (Array.isArray(args[0])) args = args[0];
+    if (args[0][$ELEMENT]) args.unshift(h.Fragment);
+    typeof args[0] === "string" && detectMultiExpression(args);
+    const ret: (() => ExpandableNode) & { [$ELEMENT]?: boolean } = () => {
+      while (args.length) item(args.shift());
+      if (e instanceof globalThis.Element && classes.length) e.classList.add(...classes)
+      return e as ExpandableNode;
+    };
+    ret[$ELEMENT] = true;
+    return ret;
 
-  function item(e: Element, c: Child, m?: null): void {
-    if (c===null) return
-    const t = typeof c
-    if (isArray(c))
-      for (const child of c)
-        item(e, child, m)
-    else if (t === 'object' && r.isChild(c))
-      r.insert(e, c, m)
-    else if (t === 'string')
-      e.appendChild(r.text((c as string)))
-    else if (t === 'function') {
-      // while (c[ELEMENT]?.call) c = (c as any)()
-      r.insert(e, c, m)
-    } else e.appendChild(r.text(c.toString()))
-  }
-
-  return function h<P extends Record<string,unknown>, C = never>(
-    first: Tag | Component<P>,
-    second?: P | C,
-    third?: C
-  ): View {
-    let props: P
-    let children: Child
-
-    if (typeof second === 'object' && !isArray(second)) {
-      children = (third as Child) || [];
-      props = ((second ?? {}) as P & {children:C})
-    } else {
-      children = (second as Child) || []
-      props = {} as P & {children:C}
-    }
-
-    let ret:View
-
-    if (typeof first === 'string') {
-      const tag = parseTag(first)
-      const multiExpression = detectMultiExpression(children) ? null : undefined
-      const e = r.element(tag.name)
-      const props2 = props as P & {class?: string|(()=>string)}
-      if (tag.id) e.setAttribute('id',tag.id)
-      if (tag.classes?.length) {
-        const cd = Object.getOwnPropertyDescriptor(props2,'class') ?? ({value:'',writable:true,enumerable:true});
-        props2.class = (cd.value?.call) ?
-          () => [...tag.classes,...(cd.value()??'').split(' ')].filter(c=>c).join(' ') :
-          [...tag.classes,...(cd.value??'').split(' ')].filter(c=>c).join(' ')
-      }
-      // if (patch) patch(props2)
-      let dynamic = false
-      const d = Object.getOwnPropertyDescriptors(props2)
-      for (const k in d) {
-        if (k !== 'ref' && !k.startsWith('on') && typeof d[k].value === 'function') {
-          dynamicProperty(props2, k)
-          dynamic = true
-        } else if (d[k].get) dynamic = true
-      }
-      (dynamic ? r.spread : r.assign) (e, props2, !!(children as {length?: number})?.length)
-      item(e, children, multiExpression)
-      ret = () => e
-    } else {
-      const d = Object.getOwnPropertyDescriptors(props)
-      if (children) (props as unknown as {children:unknown}).children = children
-      for (const k in d) {
-        if (isArray(d[k].value)) {
-          const list = d[k].value;
-          (props as Record<string, ()=>unknown>)[k] = () => {
-            for (let i = 0; i < list.length; i++)
-              while (list[i][ELEMENT]) list[i] = list[i]()
-            return list
+    function item(l: any) {
+      const type = typeof l;
+      if (l == null) void 0;
+      else if ("string" === type) {
+        if (!e) parseHtmlTag(l);
+        else e.appendChild(globalThis.document.createTextNode(l));
+      } else if (
+        "number" === type ||
+        "boolean" === type ||
+        "bigint" === type ||
+        "symbol" === type ||
+        l instanceof Date ||
+        l instanceof RegExp
+      ) {
+        (e as Node).appendChild(globalThis.document.createTextNode(l.toString()));
+      } else if (Array.isArray(l)) {
+        for (let i = 0; i < l.length; i++) item(l[i]);
+      } else if (l instanceof globalThis.Element) {
+        r.insert(e as globalThis.Element, l, multiExpression ? null : undefined);
+      } else if ("object" === type) {
+        let dynamic = false;
+        const d = Object.getOwnPropertyDescriptors(l);
+        for (const k in d) {
+          if (k === "class" && classes.length !== 0) {
+            console.log('classes',classes)
+            const fixedClasses = classes.join(" "),
+              value = typeof d["class"].value === "function" ?
+                ()=>[...classes,...(d["class"].value()??'').split(' ')].filter(c=>c).join(' ') :
+                [...classes,...(d["class"].value??'').split(' ')].filter(c=>c).join(' ')
+            Object.defineProperty(l,"class",{...d[k],value})
+            // classes = []
           }
-          dynamicProperty(props, k)
-        } else if (typeof d[k].value==='function' && !d[k].value.length) { // A function with zero arguments
-          dynamicProperty(props, k)
+          if (k !== "ref" && k.slice(0, 2) !== "on" && typeof d[k].value === "function") {
+            dynamicProperty(l, k);
+            dynamic = true;
+          } else if (d[k].get) dynamic = true;
+        }
+        dynamic
+          ? r.spread(e as globalThis.Element, l, !!args.length)
+          : r.assign(e as globalThis.Element, l, !!args.length);
+      } else if ("function" === type) {
+        if (!e) {
+          let props: Props | undefined,
+            next = args[0];
+          if (
+            next == null ||
+            (typeof next === "object" && !Array.isArray(next) && !(next instanceof globalThis.Element))
+          )
+            props = args.shift();
+          props || (props = {});
+          if (args.length) {
+            props.children = args.length > 1 ? args : args[0];
+          }
+          const d = Object.getOwnPropertyDescriptors(props);
+          for (const k in d) {
+            if (Array.isArray(d[k].value)) {
+              const list = d[k].value;
+              props[k] = () => {
+                for (let i = 0; i < list.length; i++) {
+                  while (list[i][$ELEMENT]) list[i] = list[i]();
+                }
+                return list;
+              };
+              dynamicProperty(props, k);
+            } else if (typeof d[k].value === "function" && !d[k].value.length)
+              dynamicProperty(props, k);
+          }
+          e = r.component(l, props);
+          args = [];
+        } else {
+          while ((l as any)[$ELEMENT]) l = ((l as unknown) as () => ExpandableNode)();
+          r.insert(e as globalThis.Element, l, multiExpression ? null : undefined);
         }
       }
-      const e = r.component(() => (first as Component<P>)(props))
-      ret = () => e
     }
-    ret[ELEMENT] = true
-    return ret
+    function parseHtmlTag(s: string) {
+      let i:number
+
+      i = s.indexOf('#')
+      if (i===-1) i = s.indexOf('.')
+      if (i===-1) i = s.length
+      const name = s.slice(0, i) || 'div'
+      e = r.SVGElements.has(name)
+        ? globalThis.document.createElementNS("http://www.w3.org/2000/svg", name)
+        : globalThis.document.createElement(name);
+      s = s.slice(i)
+
+      if (s[0]==='#') {
+        i = s.indexOf('.')
+        if (i===-1) i = s.length
+        e!.setAttribute("id", s.slice(1, i))
+        s = s.slice(i)
+      }
+
+      while(s[0]==='.') {
+        i = s.indexOf('.',1)
+        if (i===-1) i = s.length
+        classes.push(s.slice(1, i))
+        s = s.slice(i)
+      }
+    }
+    function parseClass(string: string) {
+      const m = string.split(/([\.#]?[^\s#.]+)/);
+      if (/^\.|#/.test(m[1])) e = globalThis.document.createElement("div");
+      for (let i = 0; i < m.length; i++) {
+        let v = m[i]
+        const s = v.substring(1, v.length);
+        if (!v) v = 'div';
+        if (!e)
+          e = r.SVGElements.has(v)
+            ? globalThis.document.createElementNS("http://www.w3.org/2000/svg", v)
+            : globalThis.document.createElement(v);
+        if (v[0] === ".") classes.push(s);
+        else if (v[0] === "#") e.setAttribute("id", s);
+      }
+    }
+    function detectMultiExpression(list: any[]) {
+      for (let i = 1; i < list.length; i++) {
+        if (typeof list[i] === "function") {
+          multiExpression = true;
+          return;
+        } else if (Array.isArray(list[i])) {
+          detectMultiExpression(list[i]);
+        }
+      }
+    }
   }
+
+  h.Fragment = (props: any) => props.children;
+  return h;
 }
 
-function detectMultiExpression(children: Child): boolean {
-  if (typeof children === 'function') return true
-  else if (!isArray(children)) return false
-  for (const i of children) {
-    if (typeof i === 'function') return true
-    else if (isArray(i)) return detectMultiExpression(i)
-  }
-  return false
-}
 
 // ^([a-zA-Z]\w*)?(#[a-zA-Z][-\w]*)?(.[a-zA-Z][-\w]*)*
-export function parseHtmlTag(s:Tag) {
-  const classes:string[] = [];
-  let id:string|undefined = undefined, i:number
+// export function parseHtmlTag(s:Tag) {
+//   const classes:string[] = [];
+//   let id:string|undefined = undefined, i:number
 
-  i = s.indexOf('#')
-  if (i===-1) i = s.indexOf('.')
-  if (i===-1) i = s.length
-  const name = s.slice(0, i) || 'div'
-  s = s.slice(i)
+//   i = s.indexOf('#')
+//   if (i===-1) i = s.indexOf('.')
+//   if (i===-1) i = s.length
+//   const name = s.slice(0, i) || 'div'
+//   s = s.slice(i)
 
-  if (s[0]==='#') {
-    i = s.indexOf('.')
-    if (i===-1) i = s.length
-    id = s.slice(1, i)
-    s = s.slice(i)
-  }
+//   if (s[0]==='#') {
+//     i = s.indexOf('.')
+//     if (i===-1) i = s.length
+//     id = s.slice(1, i)
+//     s = s.slice(i)
+//   }
 
-  while(s[0]==='.') {
-    i = s.indexOf('.',1)
-    if (i===-1) i = s.length
-    classes.push(s.slice(1, i))
-    s = s.slice(i)
-  }
-  return {name:name as string,classes,id:id}
-}
+//   while(s[0]==='.') {
+//     i = s.indexOf('.',1)
+//     if (i===-1) i = s.length
+//     classes.push(s.slice(1, i))
+//     s = s.slice(i)
+//   }
+//   return {name:name as string,classes,id:id}
+// }
 
 function dynamicProperty<T>(props: Record<string, unknown>, key: string) {
   const src = props[key] as ()=>unknown

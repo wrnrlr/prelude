@@ -2,26 +2,12 @@
 import {effect,untrack,root} from './reactive.ts'
 import {SVGNamespace,SVGElements,ChildProperties,getPropAlias,Properties,Aliases,DelegatedEvents} from './constants.ts'
 import {reconcileArrays} from './domdiff.ts'
-// import type {Mountable} from './constants.ts'
 
 const {isArray} = Array
 
 export type Mountable = HTMLElement | Document | ShadowRoot | DocumentFragment | Node | string | number | bigint | symbol;
 
-export const r = { render, insert, spread, assign, element, component, text, isChild, clearDelegatedEvents}
-
-// declare global {
-//   interface Document {
-//     '_$DX_DELEGATE'?: Record<string, Set<unknown>>
-//   }
-//   // interface SVGElement {}
-// }
-
-// interface Element {
-//   style?: string
-// }
-
-// declare const globalThis: Document
+export const r = { render, insert, spread, assign, element, component, text, isChild, clearDelegatedEvents, SVGElements }
 
 /**
 
@@ -67,8 +53,8 @@ function isChild(a:unknown): a is Element {
   return a instanceof Element
 }
 
-function component(fn:()=>unknown) {
-  return untrack(fn)
+function component(fn:()=>unknown, props: unknown) {
+  return untrack(()=>fn(props))
 }
 
 function render(code: ()=>void, element:Element|Document, init?: unknown): void {

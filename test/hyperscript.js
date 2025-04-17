@@ -1,16 +1,13 @@
-// import {runtime} from '../src/runtime.ts'
 import { Window } from 'happy-dom'
 import {assertEquals} from '@std/assert'
 
 const window = new Window
 
-globalThis.window = window
-globalThis.document = window.document
-globalThis.navigator = window.navigator
+globalThis = window
 
-import {signal,root} from '../src/reactive.ts'
+import { signal, root } from '../src/reactive.ts'
 import { r } from '../src/runtime.ts'
-import {h} from '../src/hyperscript.ts'
+import { h } from '../src/hyperscript.ts'
 
 function testing(name, props, f=props) {
   const htest = t => (name, f) => {
@@ -44,7 +41,7 @@ testing('h with basic element', async test => {
   await test("number content", () => assertHTML(h('i',1), '<i>1</i>'))
   await test("bigint content", () => assertHTML(h('i',2n), '<i>2</i>'))
   await test("symbol content", () => assertHTML(h('i',Symbol('A')), '<i>Symbol(A)</i>'))
-  // await test('regex content', () => assertHTML(h('b',/\w/), '<b>/\\w/</b>'))
+  await test('regex content', () => assertHTML(h('b',/\w/), '<b>/\\w/</b>'))
   await test("signal content", () => assertHTML(h('i',()=>1), '<i>1</i>'))
   await test('array content', () => assertHTML(h('i',['A',1,2n]), '<i>A12</i>'))
   await test('ref property', () => assertHTML(h('hr',{ref:el=>el.setAttribute('a','1')}), '<hr a="1">'))
