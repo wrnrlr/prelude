@@ -12,6 +12,7 @@
 :root {
   font-family: sans-serif;
 }
+
 .example {
   display: flex;
   padding: 2rem;
@@ -21,9 +22,6 @@ details {
   & > script {
     display: block;
   }
-}
-script {
-  display: block;
 }
 
 .select {}

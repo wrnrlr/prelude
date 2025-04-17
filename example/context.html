@@ -1,0 +1,29 @@
+<script type="module">
+
+import {h,signal,effect,batch,wrap,render,context,useContext,List} from '../src/mod.ts'
+
+const CounterCtx = context()
+
+const useCounter = () => {
+  const c = useContext(CounterCtx)
+  return c
+}
+
+function CounterProvider(props) {
+  const counter = signal(0)
+  const increment = ()=>(console.log('increment', counter()),counter(v=>++v))
+  return h(CounterCtx, {value:()=>[counter, increment]}, props.children)
+}
+
+function Counter() {
+  const [val, increment] = useCounter()
+  return [val, h('button', {onClick:e=>increment()}, '+')]
+}
+
+function App() {
+  return h(CounterProvider, ()=>h(Counter))
+}
+
+render(App, document.body)
+
+</script>
