@@ -157,7 +157,7 @@ const useCounter = () => useContext(CounterCtx)
 function CounterProvider(props) {
   const count = signal(0)
   const increment = () => count(i=>i+1)
-  return h(CounterCtx.Provider, {value:[count,increment]}, props.children)
+  return h(CounterCtx, {value:[count,increment]}, props.children)
 }
 
 function Counter() {
@@ -227,3 +227,7 @@ deno task test
 * [Homepage](https://wrnrlr.github.io/prelude)
 * [NPM](https://www.npmjs.com/package/@wrnrlr/prelude)
 * [JSR](https://jsr.io/@wrnrlr/prelude)
+
+## More Links
+
+* [Fine-grained reactivity - A deep dive into SolidJS](https://github.com/everweij/solidjs-fine-grained-reactivity)
