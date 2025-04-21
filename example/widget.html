@@ -95,12 +95,12 @@ import { h, signal, memo, render, Select } from "../src/mod.ts"
 function SelectCar() {
   const cars = { 'Audi': ['A1','A6'], 'BMW': ['B5', 'BX'] }
   const companies = Object.keys(cars)
-  const company = signal()
+  const company = signal('Audi')
   const model = signal('')
   const models = memo(() => cars[company()] || null)
   return [
-    '', h(Select, {options:companies, value:()=>company}),
-    '', h(Select, {options:models, value:()=>model})
+    h('label', ['Brand', h(Select, {options:companies, value:()=>company})]),
+    h('label', ['Model', h(Select, {options:models, value:()=>model})])
   ]
 }
 
@@ -108,5 +108,28 @@ render(SelectCar, document.getElementById('select_car'))
 </script>
 
 <style>
+
+label {
+  display: inline flex;
+  flex-direction: row;
+}
+
+.select {
+  display: block;
+  position: relative;
+  & > button {
+    background-color: var(--neutral-200);
+  }
+  & > .options {
+    cursor: pointer;
+    position: absolute;
+    border: 1px solid black;
+    z-index: 10;
+    white-space: nowrap;
+    & > .selected {
+      background-color: var(--yellow-200);
+    }
+  }
+}
 
 </style>

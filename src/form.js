@@ -54,10 +54,12 @@ export function Select(props) {
   })
   const fallback = props.placeholder ? h('span', props.placeholder) : 'nbsp'
   return h('.select', [
-    h('button', {onClick:e=>show(s=>!s)}, h(Show, {when:()=>props.value, fallback}, ()=>props.value() || nbsp)),
+    h('button', {onClick:e=>show(s=>!s)},
+      h(Show, {when:()=>props.value, fallback}, ()=>props.value() || nbsp)),
     h(Show, {when: show}, h('.options', {style:'position:absolute'}, h(List, {each:()=>selected().options},
       (option) => h('.option', {
         onClick: (e) => { e.preventDefault(); props.value(option()); show(false) },
+        class: () => props.value()===option() ? 'selected' : '',
         style: 'cursor: pointer'
       }, option)
     )))
