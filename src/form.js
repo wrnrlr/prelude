@@ -57,7 +57,7 @@ export function Select(props) {
     h('button', {onClick:e=>show(s=>!s)}, h(Show, {when:()=>props.value, fallback}, ()=>props.value() || nbsp)),
     h(Show, {when: show}, h('.options', {style:'position:absolute'}, h(List, {each:()=>selected().options},
       (option) => h('.option', {
-        onClick: (_) => { props.value(option()); show(false) },
+        onClick: (e) => { e.preventDefault(); props.value(option()); show(false) },
         style: 'cursor: pointer'
       }, option)
     )))
