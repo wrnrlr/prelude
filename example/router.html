@@ -1,0 +1,42 @@
+<script type="module">
+
+import {h,signal,effect,batch,wrap,render,List,Router} from '../src/mod.ts'
+
+function Home() {
+  return h('h1', 'Home')
+}
+
+function A() {
+  return h('h1', 'A')
+}
+
+function B() {
+  return h('h1', 'B')
+}
+
+function C(props) {
+  return h('h1', ['C: ', props.params.id])
+}
+
+function App() {
+  return [
+    h('nav', {style: 'display: flex; gap: 1rem;'}, [
+      h('a', {href:'/router.html'}, '/'),
+      h('a', {href:'/router.html/a'}, '/a'),
+      h('a', {href:'/router.html/b'}, '/b'),
+      h('a', {href:'/router.html/c'}, '/c'),
+      h('a', {href:'/router.html/c/1'}, '/c/1'),
+    ]),
+    h(Router, {base:'/router.html'}, [
+      {path:'/', component:Home},
+      {path:'/a', component:A},
+      {path:'/b', component:B},
+      {path:'/c', component:C},
+      {path:'/c/:id', component:C},
+    ])
+  ]
+}
+
+render(h(App), document.body)
+
+</script>

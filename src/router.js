@@ -1,29 +1,6 @@
-/*
-MIT License
-
-Copyright (c) 2016-2025 Ryan Carniato
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
 // @ts-nocheck
-import {signal,effect,batch,untrack,memo,wrap,context,useContext,onMount} from './reactive.ts'
-// import {h} from './hyperscript.ts'
+import { signal, effect, batch, untrack, memo, wrap, context, useContext, onMount } from './reactive.ts'
+// import { h } from './hyperscript.ts'
 
 const Ctx = context()
 const useRouter = () => useContext(Ctx)
@@ -31,54 +8,93 @@ export const useNavigate = () => wrap(useRouter(),'navigate')
 export const useParams = () => wrap(useRouter(),'params')
 export const useSearch = () => wrap(useRouter(),'search')
 
-export function HashRouter(props) {
+export function Router(props) {
+  const BASE = props.base || ''
   const routes = props.children
-  const NotFound = ()=>'Not found'
-  const render = () => {console.log('render')}
-  // const loaded = signal(false)
+  const NotFound = () => 'Not found'
   const navigate = signal(null)
   const params = signal(null)
   const search = signal(null)
-  onMount(()=>{
-    window.addEventListener("popstate", (event) => {
-      batch(()=>navigate(parseHash(document.location.hash)))
+  function stripBase(fullPath) {
+    if (fullPath.startsWith(BASE)) {
+      return fullPath.slice(BASE.length) || '/'
+    }
+    return fullPath
+  }
+  function withBase(relPath) {
+    if (!relPath.startsWith('/')) relPath = '/' + relPath;
+    return BASE + relPath;
+  }
+  function navigateTo(fullPath) {
+    const stripedPath = stripBase(fullPath)
+    history.pushState({}, '', withBase(stripedPath));
+    navigate({pathname:stripedPath});
+  }
+  onMount(() => {
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('a')
+      if (!target) return
+      const url = new URL(target.href);
+      if (url.origin === window.location.origin && url.pathname.startsWith(BASE)) {
+        e.preventDefault()
+        const pathname = url.pathname + url.search + url.hash
+        navigateTo(pathname)
+      }
     })
-    navigate(parseHash(document.location.hash))
+    const pathname = stripBase(window.location.pathname + window.location.search + window.location.hash)
+    navigate({pathname})
   })
-  const children = memo(() => {
-    let location = navigate()
-    const route = routes.find(r=>r.path===location.pathname)
-    return route?.component() || NotFound
-  })
+  const children = () => {
+    const location = navigate()
+    const route = matchRoute(routes, location.pathname)
+    return route?.component({params: route.params}) || NotFound
+  }
   return Ctx({navigate,params,search,children:()=>children})
 }
 
-function parseHash(s) {
-  const res = {pathname:'/'}
-  if (s[0]!=='#') return res
-  s = s.substr(1)
-
-  let i = s.indexOf('?')
-  if (i===-1) i = s.length
-  res.pathname += s.substr(0,i)
-  if (res.pathname==='') res.pathname = '/'
-  return res
+function bindEvent(target, type, handler) {
+  target.addEventListener(type, handler)
+  return () => target.removeEventListener(type, handler)
 }
 
-function parsePathname(s) {
-  let i = s.indexOf('?', 0)
-  if (i===-1) i = s.length
-  return s.substr(0,i)
+function scrollToHash(hash, fallbackTop) {
+  const el = hash && document.getElementById(hash);
+  if (el) {
+    el.scrollIntoView();
+  } else if (fallbackTop) {
+    window.scrollTo(0, 0);
+  }
 }
 
-function parseSearch(s) {
+function matchRoute(routes, pathname) {
+  // Normalize and split incoming path
+  const trim = str => str.replace(/(^\/|\/$)/g, '');
+  const requestSegments = trim(pathname).split('/').filter(Boolean);
 
-}
+  for (const route of routes) {
+    const routeSegments = trim(route.path).split('/').filter(Boolean);
+    if (routeSegments.length !== requestSegments.length) continue;
 
-export function Route(props) {
+    const params = {};
+    let matched = true;
 
-}
+    for (let i = 0; i < routeSegments.length; i++) {
+      const rSeg = routeSegments[i];
+      const pSeg = requestSegments[i];
 
-export function A(props) {
+      if (rSeg.startsWith(':')) {
+        // dynamic parameter
+        const paramName = rSeg.slice(1);
+        params[paramName] = decodeURIComponent(pSeg);
+      } else if (rSeg === pSeg) {
+        // exact segment match
+      } else {
+        matched = false;
+        break;
+      }
+    }
 
+    if (matched) return { component: route.component, params }
+  }
+  return null;
 }

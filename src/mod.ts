@@ -6,7 +6,7 @@ export {Show} from './show.ts'
 export {r, type Runtime} from './runtime.ts'
 export type * from './hyperscript.ts'
 export {hyperscript, h} from './hyperscript.ts'
-export {HashRouter} from './router.js'
+export {Router} from './router.js'
 export {resource,makeAbortable,abortable} from './resource.js'
 import {r} from './runtime.ts'
 export const render = r.render
