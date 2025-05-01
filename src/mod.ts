@@ -1,5 +1,5 @@
 export type {Getter,Setter,Signal} from './reactive.ts'
-export {signal,effect,untrack,batch,memo,root,context,useContext,wrap,fuse,onMount,onCleanup,renderEffect} from './reactive.ts'
+export {signal,effect,untrack,batch,memo,root,children,context,useContext,wrap,fuse,onMount,onCleanup,renderEffect} from './reactive.ts'
 export {nbsp} from './constants.ts'
 export {List} from './list.ts'
 export {Show} from './show.ts'
