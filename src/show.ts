@@ -43,6 +43,6 @@ export function Show<T>(props:ShowProps<T>) {
       const child = props.children
       const fn = typeof child === "function" && child.length > 0
       return fn ? untrack(() => child(() => props.when)) : child
-    } else return props.fallback
+    } else return props?.fallback || []
   })
 }

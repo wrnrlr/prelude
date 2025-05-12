@@ -466,3 +466,23 @@ function observe<T>(fn: Fn<T>, observer: Observer | undefined, tracking: boolean
     TRACKING = TRACKING_PREV;
   }
 }
+
+export function on( deps: any, fn: any, options?: any ): any {
+  const isArray = Array.isArray(deps);
+  let prevInput: any;
+  let defer = options && options.defer;
+  return prevValue => {
+    let input: any;
+    if (isArray) {
+      input = Array(deps.length) as unknown as S;
+      for (let i = 0; i < deps.length; i++) (input as unknown as any)[i] = deps[i]();
+    } else input = deps();
+    if (defer) {
+      defer = false;
+      return prevValue;
+    }
+    const result = untrack(() => fn(input, prevInput, prevValue));
+    prevInput = input;
+    return result;
+  };
+}
