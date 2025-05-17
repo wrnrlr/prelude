@@ -1,10 +1,7 @@
 import type {DOMElements} from './constants.ts'
 import type {Mountable} from './runtime.ts'
-import {r} from './runtime.ts'
 
 // const document = globalThis.document
-
-export const h = hyperscript(r)
 
 type MountableElement = Element | Document | ShadowRoot | DocumentFragment | Node
 
@@ -179,6 +176,11 @@ export function hyperscript(r: Runtime): HyperScript {
   return h;
 }
 
+function dynamicProperty<T>(props: Record<string, unknown>, key: string) {
+  const src = props[key] as ()=>unknown
+  Object.defineProperty(props, key, {get() {return src()}, enumerable:true})
+  // return props
+}
 
 // ^([a-zA-Z]\w*)?(#[a-zA-Z][-\w]*)?(.[a-zA-Z][-\w]*)*
 // export function parseHtmlTag(s:Tag) {
@@ -206,12 +208,6 @@ export function hyperscript(r: Runtime): HyperScript {
 //   }
 //   return {name:name as string,classes,id:id}
 // }
-
-function dynamicProperty<T>(props: Record<string, unknown>, key: string) {
-  const src = props[key] as ()=>unknown
-  Object.defineProperty(props, key, {get() {return src()}, enumerable:true})
-  // return props
-}
 
 // function tw(rules) {
 //   const classes = (classes) => classes.filter(c=>!rules.some(r=>c.match(r[0]))).join(' ')

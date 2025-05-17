@@ -304,7 +304,7 @@ export function context<T>(defaultValue?: T) {
   const s = {id, defaultValue}
   return Object.assign((props:any) => {
     OBSERVER?.set(id, props.value)
-    return () => props.children.call ? props.children() : props.children
+    return () => props.children?.call ? props.children() : props.children
   }, s) as unknown as Context<T>
 }
 
