@@ -1,6 +1,6 @@
 {
   "name": "@wrnrlr/prelude",
-  "version": "0.2.26",
+  "version": "0.2.27",
   "exports": {
       ".": "./src/mod.ts",
       "./style.css": "./src/style.css"

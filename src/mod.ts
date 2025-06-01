@@ -8,6 +8,7 @@ export type * from './hyperscript.ts'
 export {hyperscript} from './hyperscript.ts'
 export {h} from './web.ts'
 export {Router} from './router.js'
+export {Switch, Match} from './switch.ts'
 export {resource,makeAbortable,abortable} from './resource.js'
 import {r} from './runtime.ts'
 export const render = r.render
