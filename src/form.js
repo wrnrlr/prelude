@@ -1,7 +1,7 @@
 import { signal, memo, effect, context, useContext, renderEffect } from './reactive.ts'
 import { Show } from './show.ts'
 import { List } from './list.ts'
-import { h } from './hyperscript.ts'
+import { h } from './web.ts'
 import { nbsp } from './constants.ts'
 
 const Ctx = context()
@@ -12,11 +12,16 @@ export function Form(props) {
 }
 
 export function Input(props) {
-  props.onInput = ((e) => props.value((e?.target)?.value))
-  props.autocomplete = props.autocomplete || 'off'
+  // props.onInput = ((e) => props.value((e?.target)?.value))
+  // const autocomplete = props.autocomplete || 'off'
   // const onInput = ((e) => props.value((e?.target)?.value))
   if (props.autosize) props.ref = (r) => props.autosize(r, props)
-  return h('input', props)
+  return h('input', {
+    // value: props.value,
+    onInput: ((e) => props.value((e?.target)?.value)),
+    // autocomplete,
+    ...props
+  })
 }
 
 export function autosize(r, props) {
