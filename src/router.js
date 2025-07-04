@@ -1,9 +1,9 @@
 // @ts-nocheck
 import { signal, effect, batch, untrack, memo, wrap, context, useContext, onMount } from './reactive.ts'
-// import { h } from './hyperscript.ts'
+import { h } from './web.ts'
 
-const Ctx = context()
-const useRouter = () => useContext(Ctx)
+const RouterCtx = context()
+export const useRouter = () => useContext(RouterCtx)
 export const useNavigate = () => wrap(useRouter(),'navigate')
 export const useParams = () => wrap(useRouter(),'params')
 export const useSearch = () => wrap(useRouter(),'search')
@@ -43,13 +43,22 @@ export function Router(props) {
     })
     const pathname = stripBase(window.location.pathname + window.location.search + window.location.hash)
     navigate({pathname})
+    // Listen to browser history navigation (back/forward)
+    const popHandler = () => {
+      const path = stripBase(window.location.pathname + window.location.search + window.location.hash)
+      navigate({ pathname: path })
+    }
+    window.addEventListener('popstate', popHandler)
   })
+  // TODO cleanup click and popstate handlers...
   const children = () => {
     const location = navigate()
+    // console.log('loc', location)
     const route = matchRoute(routes, location.pathname)
     return route?.component({params: route.params}) || NotFound
   }
-  return Ctx({navigate,params,search,children:()=>children})
+  return h(RouterCtx, {value:{navigate:navigateTo,params,search}}, children)
+  // return RouterCtx({navigate,params,search,children})
 }
 
 function bindEvent(target, type, handler) {
@@ -68,10 +77,15 @@ function scrollToHash(hash, fallbackTop) {
 
 function matchRoute(routes, pathname) {
   // Normalize and split incoming path
-  const trim = str => str.replace(/(^\/|\/$)/g, '');
+  const trim = str => {
+    // console.log('str', str)
+    return str.replace(/(^\/|\/$)/g, '')
+  }
+  // console.log('pathname', pathname)
   const requestSegments = trim(pathname).split('/').filter(Boolean);
 
   for (const route of routes) {
+    // console.log(route, route.path)
     const routeSegments = trim(route.path).split('/').filter(Boolean);
     if (routeSegments.length !== requestSegments.length) continue;
 
